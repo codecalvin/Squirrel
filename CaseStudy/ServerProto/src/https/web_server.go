@@ -55,7 +55,7 @@ func (hs *historyListener) Accept() (c net.Conn, err error) {
 	
 	tc.SetKeepAlive(true)
 	tc.SetKeepAlivePeriod(3 * time.Minute)
-	return
+	return tc, err
 }
 
 func newLocalListener() net.Listener {

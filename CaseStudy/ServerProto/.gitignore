@@ -1,3 +1,7 @@
+# ******************** goclipse ********************
+bin
+pkg
+
 # ******************** go lang ********************
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -39,8 +43,8 @@ _testmain.go
 # .idea/uiDesigner.xml
 
 # Gradle:
-# .idea/gradle.xml
-# .idea/libraries
+.idea/gradle.xml
+.idea/libraries
 
 # Mongo Explorer plugin:
 .idea/mongoSettings.xml

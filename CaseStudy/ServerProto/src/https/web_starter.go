@@ -7,8 +7,8 @@ import (
 
 func main() {
 	ts := NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, client")
+		fmt.Fprintln(w, "Hello, client. Comeon baby let's go")
 	}))
 	ts.Start()
-	//defer ts.Close()
+	defer ts.Close()
 }
