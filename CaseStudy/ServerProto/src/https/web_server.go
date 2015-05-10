@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"os"
 	"sync"
-	"time"
 )
 
 // A Server is an HTTP server listening on a system-chosen port on the
@@ -40,22 +39,20 @@ type Server struct {
 // historyListener keeps track of all connections that it's ever
 // accepted.
 type historyListener struct {
-	*net.TCPListener
+	net.Listener
 	sync.Mutex // protects history
 	history    []net.Conn
 }
 
 func (hs *historyListener) Accept() (c net.Conn, err error) {
-	tc, err := hs.TCPListener.AcceptTCP()
+	c, err = hs.Listener.Accept()
 	if err == nil {
 		hs.Lock()
 		hs.history = append(hs.history, c)
 		hs.Unlock()
 	}
 	
-	tc.SetKeepAlive(true)
-	tc.SetKeepAlivePeriod(3 * time.Minute)
-	return tc, err
+	return
 }
 
 func newLocalListener() net.Listener {
@@ -79,7 +76,7 @@ func newLocalListener() net.Listener {
 // this flag lets you run
 //	go test -run=BrokenTest -httptest.serve=127.0.0.1:8000
 // to start the broken server so you can interact with it manually.
-var serve = flag.String("httptest.serve", "127.0.0.1:8080", "if non-empty, httptest.NewServer serves on this address and blocks")
+var serve = flag.String("httptest.serve", "127.0.0.1:8000", "if non-empty, httptest.NewServer serves on this address and blocks")
 
 // NewServer starts and returns a new Server.
 // The caller should call Close when finished, to shut it down.
@@ -107,7 +104,7 @@ func (s *Server) Start() {
 	if s.URL != "" {
 		panic("Server already started")
 	}
-	s.Listener = &historyListener{TCPListener: s.Listener.(*net.TCPListener)}
+	s.Listener = &historyListener{Listener: s.Listener}
 	s.URL = "http://" + s.Listener.Addr().String()
 	s.wrapHandler()
 	go s.Config.Serve(s.Listener)
@@ -140,10 +137,14 @@ func (s *Server) StartTLS() {
 	}
 	tlsListener := tls.NewListener(s.Listener, s.TLS)
 
-	s.Listener = &historyListener{TCPListener: tlsListener.(*net.TCPListener)}
+	s.Listener = &historyListener{Listener: tlsListener}
 	s.URL = "https://" + s.Listener.Addr().String()
 	s.wrapHandler()
 	go s.Config.Serve(s.Listener)
+	if *serve != "" {
+		fmt.Fprintln(os.Stderr, "httptest: serving on", s.URL)
+		select {}
+	}
 }
 
 func (s *Server) wrapHandler() {
