@@ -11,6 +11,6 @@
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_4" default="true" assert-keyword="true" jdk-15="false" project-jdk-name="Go 1.4.2" project-jdk-type="Go SDK">
-    <output url="file://$PROJECT_DIR$/out" />
+    <output url="file://$PROJECT_DIR$/bin" />
   </component>
 </project>

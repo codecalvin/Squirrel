@@ -6,18 +6,23 @@ import (
 	"flag"
 )
 
-var httpsEnable = flag.Bool("https.enable", false, "enable https service")
+var httpsEnable = flag.Bool("https.enabled", false, "enable https service")
 
-func main() {
-	ts := NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Hello, client. Comeon baby let's go")
-	}))
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "hello world")
+}
+
+func main()  {
+
+	t := NewUnstartedServer(http.HandlerFunc(defaultHandler))
 
 	flag.Parse()
+
 	if *httpsEnable {
-		ts.StartTLS()
+		t.StartTLS()
 	} else {
-		ts.Start()
+		t.Start()
 	}
-	defer ts.Close()
+
+	defer t.Close()
 }
