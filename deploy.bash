@@ -14,5 +14,7 @@ go get github.com/gorilla/schema
 # mongodb
 go get gopkg.in/mgo.v2
 
-
-
+# beego
+go get github.com/astaxie.beego
+go get github.com/beggo/bee
+go get github.com/beego/i18n
