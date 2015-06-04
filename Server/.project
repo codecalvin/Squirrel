@@ -13,5 +13,6 @@
 	</buildSpec>
 	<natures>
 		<nature>com.googlecode.goclipse.core.goNature</nature>
+		<nature>goclipse.goNature</nature>
 	</natures>
 </projectDescription>
