@@ -2,7 +2,7 @@ package main
 
 import (
 	_ "squirrelchuckle/routers"
-	database "squirrelchuckle/database"
+	"squirrelchuckle/database"
 	"github.com/astaxie/beego"
 )
 
