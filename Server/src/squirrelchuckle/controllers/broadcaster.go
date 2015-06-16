@@ -11,7 +11,7 @@ import (
 )
 
 func newEvent(ep models.EventType, user, msg string) models.Event {
-	return models.Event{ep, user, int(time.Now().Unix()), msg}
+	return models.Event{ep, user, msg, int(time.Now().Unix())}
 }
 
 var (
@@ -19,7 +19,6 @@ var (
 	unsubscribe = make(chan string, 10)
 
 	publish = make(chan models.Event, 10)
-	waitingList = list.New()
 	subscribers = list.New()
 )
 
@@ -51,15 +50,7 @@ func board() {
 				beego.Info("Old user:", sub.Name, ";WebSocket:", sub.Conn != nil)
 			}
 		case event := <-publish:
-			// Notify waiting list.
-			for ch := waitingList.Back(); ch != nil; ch = ch.Prev() {
-				ch.Value.(chan bool) <- true
-				waitingList.Remove(ch)
-			}
-
 			broadcastWebSocket(event)
-			models.NewArchive(event)
-
 			if event.EventType == models.EVENT_MESSAGE {
 				beego.Info("Message from", event.User, ";Content:", event.Content)
 			}

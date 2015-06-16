@@ -16,6 +16,10 @@ func init() {
 
 	router("/", "home_page", &controllers.MainController{})
 	router("/api", "api_page", &controllers.ApiController{})
+
+	router("/ws", "websocket_example:Join", &controllers.WebSocketController{})
+	router("/ws/join", "websocket_example:Join", &controllers.WebSocketController{}, "get:Join")
+
 	router("/users", "users", &controllers.UsersController{})
 	router("/users/:id", "user_url", &controllers.UsersController{})
 

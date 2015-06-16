@@ -7,14 +7,17 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/gorilla/websocket"
 
-	"github.com/beego/samples/WebIM/models"
-
 	"squirrelchuckle/models"
 )
 
 // WebSocketController handles WebSocket requests.
 type WebSocketController struct {
 	beego.Controller
+}
+
+func (this *WebSocketController) Get() {
+	// do nothing
+	this.ServeJson()
 }
 
 // Join method handles WebSocket requests for WebSocketController.
@@ -29,7 +32,7 @@ func (this *WebSocketController) Join() {
 	upgrade := websocket.Upgrader {
 		ReadBufferSize:1024,
 		WriteBufferSize:1024,
-		HandshakeTimeout:10,
+		HandshakeTimeout: 1 << 33, // set timeout to 8s
 	}
 
 	ws, err := upgrade.Upgrade(this.Ctx.ResponseWriter, this.Ctx.Request, nil)

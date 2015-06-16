@@ -16,7 +16,7 @@ type ClassController struct {
 
 func (this *ClassController) Get() {
 	var result [] ProfileInfo
-	c := models.MSession.DB("squirrel").C("user")
+	c := database.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 	iterator := q.Iter()
 	print(iterator)
@@ -31,7 +31,7 @@ func (this *ClassController) Post() {
 	name := input.Get("name")
 	id := input.Get("id")
 
-	c := models.MSession.DB("squirrel").C("user")
+	c := database.MSession.DB("squirrel").C("user")
 
 	p := ProfileInfo{UserName:name, UserId:id}
 	cinfo, err := c.Upsert(bson.M{"userid": id}, p)
