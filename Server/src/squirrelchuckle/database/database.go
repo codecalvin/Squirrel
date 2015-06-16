@@ -2,14 +2,15 @@ package database
 
 import (
 	"gopkg.in/mgo.v2"
-	"squirrelchuckle/conf"
+
+	"squirrelchuckle/settings"
 )
 
 var MSession *mgo.Session
 
 func init() {
 	var err error
-	MSession, err = mgo.Dial(conf.AppDatabaseAddr)
+	MSession, err = mgo.Dial(settings.AppDatabaseAddr)
 	
 	if err != nil {
 		panic(err)

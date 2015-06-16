@@ -21,7 +21,7 @@ type ProfileInfo struct {
 
 func (this *UsersController) Get() {
 	var result [] ProfileInfo
-	c := database.MSession.DB("squirrel").C("user")
+	c := models.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 	iterator := q.Iter()
 	print(iterator)
@@ -36,7 +36,7 @@ func (this *UsersController) Post() {
 	name := input.Get("name")
 	id := input.Get("id")
 
-	c := database.MSession.DB("squirrel").C("user")
+	c := models.MSession.DB("squirrel").C("user")
 
 	p := ProfileInfo{UserName:name, UserId:id}
 	cinfo, err := c.Upsert(bson.M{"userid": id}, p)
