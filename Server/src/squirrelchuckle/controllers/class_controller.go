@@ -10,16 +10,11 @@ import (
 	"squirrelchuckle/database"
 )
 
-type UsersController struct {
+type ClassController struct {
 	beego.Controller
 }
 
-type ProfileInfo struct {
-	UserName string
-	UserId   string
-}
-
-func (this *UsersController) Get() {
+func (this *ClassController) Get() {
 	var result [] ProfileInfo
 	c := database.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
@@ -31,7 +26,7 @@ func (this *UsersController) Get() {
 	this.ServeJson()
 }
 
-func (this *UsersController) Post() {
+func (this *ClassController) Post() {
 	input := this.Input()
 	name := input.Get("name")
 	id := input.Get("id")
@@ -47,11 +42,3 @@ func (this *UsersController) Post() {
 
 	this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cinfo, name, id)))
 }
-
-
-// -----------------------------------------------
-// User Management
-type UserController struct {
-	beego.Controller
-}
-

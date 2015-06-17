@@ -1,16 +1,30 @@
 package routers
 
 import (
-	"squirrelchuckle/controllers"
 	"github.com/astaxie/beego"
+
+	"squirrelchuckle/controllers"
 )
 
+func router(rootPath, info string, c beego.ControllerInterface, mappingMethods ...string) *beego.App {
+	controllers.EndPoint[info] = rootPath
+	return beego.Router(rootPath, c, mappingMethods...)
+}
+
 func init() {
-    beego.Router("/", &controllers.MainController{})
+	controllers.EndPoint = make(map[string]string)
 
-	beego.Router("/users", &controllers.UsersController{})
-	//beego.Router("/users/create", &controllers.UsersController{})
-	//beego.Router("/users/delete", &controllers.UsersController{})
+	router("/", "home_page", &controllers.MainController{})
+	router("/api", "api_page", &controllers.ApiController{})
 
-	beego.Router("/user/:id", &controllers.UserController{})
+	router("/ws", "websocket_example:Join", &controllers.WebSocketController{})
+	router("/ws/join", "websocket_example:Join", &controllers.WebSocketController{}, "get:Join")
+
+	router("/users", "users", &controllers.UsersController{})
+	router("/users/:id", "user_url", &controllers.UsersController{})
+
+	router("/user", "current_user", &controllers.UserController{})
+
+	router("/classes", "classes", &controllers.ClassController{})
+	router("/classes/:id", "class_url", &controllers.ClassController{})
 }
