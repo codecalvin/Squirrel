@@ -8,11 +8,11 @@
 
 #import "MeViewController.h"
 #import "Define.h"
-#import "SettingViewController.h"
-#import "NotificationPublishViewController.h"
-#import "AdminPublishTableViewCell.h"
+#import "Setting/SettingViewController.h"
+#import "AdminPublish/NotificationPublishViewController.h"
+#import "AdminPublish/AdminPublishTableViewCell.h"
 #import "AFNetworking.h"
-#import "MeViewData.h"
+#import "DataModel/MeViewData.h"
 
 @interface MeViewController ()
 {

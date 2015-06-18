@@ -7,8 +7,8 @@
 //
 
 #import "LoginViewController.h"
-#import "DictionaryTabBarViewController.h"
-#import "MeViewData.h"
+#import "TabBarViewController/DictionaryTabBarViewController.h"
+#import "DataModel/MeViewData.h"
 
 @interface LoginViewController ()
 {

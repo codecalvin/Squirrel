@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "AdminPublishViewData.h"
+#import "DataModel/AdminPublishViewData.h"
 
 typedef enum
 {

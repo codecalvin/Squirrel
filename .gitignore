@@ -9,3 +9,8 @@
 
 # windows index
 [tT]humb.db
+
+build
+build-*
+
+**Info.plist

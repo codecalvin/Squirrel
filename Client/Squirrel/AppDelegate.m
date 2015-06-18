@@ -7,8 +7,8 @@
 //
 
 #import "AppDelegate.h"
-#import "DictionaryTabBarViewController.h"
-#import "LoginViewController.h"
+#import "TabBarViewController/DictionaryTabBarViewController.h"
+#import "Login/LoginViewController.h"
 #import "Define.h"
 
 @interface AppDelegate ()

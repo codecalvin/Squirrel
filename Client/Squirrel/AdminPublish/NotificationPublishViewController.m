@@ -9,7 +9,7 @@
 #import "NotificationPublishViewController.h"
 #import "AFNetworking.h"
 #import "Define.h"
-#import "MeViewData.h"
+#import "DataModel/MeViewData.h"
 
 @interface NotificationPublishViewController ()
 {

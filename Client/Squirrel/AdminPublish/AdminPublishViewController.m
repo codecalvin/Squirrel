@@ -9,7 +9,7 @@
 #import "AdminPublishViewController.h"
 #import "NotificationPublishViewController.h"
 #import "AdminPublishTableViewCell.h"
-#import "UserViewData.h"
+#import "DataModel/UserViewData.h"
 #import "Define.h"
 
 @interface AdminPublishViewController ()

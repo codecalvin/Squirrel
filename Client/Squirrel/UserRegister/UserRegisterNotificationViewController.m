@@ -7,10 +7,10 @@
 //
 
 #import "UserRegisterNotificationViewController.h"
-#import "NotificationPublishViewController.h"
-#import "AdminPublishTableViewCell.h"
+#import "AdminPublish/NotificationPublishViewController.h"
+#import "AdminPublish/AdminPublishTableViewCell.h"
 #import "AFNetworking.h"
-#import "UserViewData.h"
+#import "DataModel/UserViewData.h"
 #import "Define.h"
 
 @interface UserRegisterNotificationViewController()

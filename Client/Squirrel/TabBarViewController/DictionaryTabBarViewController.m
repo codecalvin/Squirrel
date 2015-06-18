@@ -6,10 +6,10 @@
 //  Copyright (c) 2015 JamesMao. All rights reserved.
 //
 #import "DictionaryTabBarViewController.h"
-#import "AdminPublishViewController.h"
-#import "UserRegisterNotificationViewController.h"
-#import "MeViewController.h"
-#import "BBSViewController.h"
+#import "AdminPublish/AdminPublishViewController.h"
+#import "UserRegister/UserRegisterNotificationViewController.h"
+#import "Me/MeViewController.h"
+#import "BBS/BBSViewController.h"
 
 @implementation DictionaryTabBarViewController
 
