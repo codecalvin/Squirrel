@@ -3,3 +3,9 @@
 
 # vim temp file
 *.swp
+
+# apple index
+.DS_Store
+
+# windows index
+[tT]humb.db
