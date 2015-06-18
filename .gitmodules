@@ -1,0 +1,3 @@
+[submodule "Client/3rd/AFNetworking"]
+	path = Client/3rd/AFNetworking
+	url = git@github.com:AFNetworking/AFNetworking.git
