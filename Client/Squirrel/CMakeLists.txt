@@ -6,14 +6,20 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/../cmake")
 set(_ProductPackage "com.dummy.dummy" CACHE STRING "Project package id")
 include(Utils)
 
-set (AFNetworking_ROOT ../3rd)
-set (AFNetworking_BUILDTOP ${CMAKE_BINARY_DIR}-afn)
+set (Third_ROOT ../3rd)
+set (Third_BUILDTOP ${CMAKE_BINARY_DIR}-3rd)
 
-add_subdirectory(${AFNetworking_ROOT} ${AFNetworking_BUILDTOP})
+add_subdirectory(${Third_ROOT} ${Third_BUILDTOP})
 
-include_directories(${AFNetworking_ROOT}/AFNetworking/AFNetworking)
+#################### include directory ####################
+# include public 3rd libraries hdr
+foreach (ph ${Public_3rd_HDRS})
+  include_directories(${Third_ROOT}/${ph})
+endforeach()
+
 include_directories(${PROJECT_SOURCE_DIR})
 
+#################### compile sources ####################
 file(GLOB_RECURSE HDRS *.h)
 file(GLOB_RECURSE SRCS *.m)
 file(GLOB_RECURSE RESOURCES *.xib)
@@ -22,7 +28,7 @@ set(RESOURCES ${RESOURCES} ${STORYBOARD})
 
 add_executable(Squirrel MACOSX_BUNDLE ${HDRS} ${SRCS} ${RESOURCES})
 
-# set_property (TARGET AFNetworking APPEND_STRING PROPERTY COMPILE_FLAGS "-fobjc-arc")
+#################### platform libraries ####################
 set(PLATFORM_FRAMEWORKS
   CoreGraphics
   MobileCoreServices
@@ -34,13 +40,16 @@ foreach(pf ${PLATFORM_FRAMEWORKS})
   set(PLATFORM_FRAMEWORK_FLAGS ${PLATFORM_FRAMEWORK_FLAGS} "-framework ${pf}")
 endforeach()
 
-target_link_libraries(Squirrel AFNetworking ${PLATFORM_FRAMEWORK_FLAGS})
+target_link_libraries(Squirrel ${Public_3rd_LIBS} ${PLATFORM_FRAMEWORK_FLAGS})
 
+
+#################### set source group ####################
 GroupTopResources(*.h)
 GroupTopResources(*.m)
 GroupTopResources(*.xib)
 GroupTopResources(*.storyboard)
 
+#################### xcode property ####################
 set_xcode_property(Squirrel GCC_GENERATE_DEBUGGING_SYMBOLS YES)
 set_xcode_property(Squirrel CODE_SIGN_IDENTITY "iPhone Developer")
 #set_xcode_property(Squirrel GCC_PREFIX_HEADER ${PREFIX_HEADER})

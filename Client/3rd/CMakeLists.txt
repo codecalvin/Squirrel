@@ -1,13 +1,5 @@
-cmake_minimum_required(VERSION 3.0)
+add_subdirectory(AFNetworking)
 
-project (AFNetworking)
-
-set(AFNetworkingDIR AFNetworking/AFNetworking)
-
-file(GLOB_RECURSE AFN_HDRS ${AFNetworkingDIR} ${AFNetworkingDIR}/*.h)
-file(GLOB_RECURSE AFN_SRCS ${AFNetworkingDIR} ${AFNetworkingDIR}/*.m)
-
-add_library(AFNetworking ${AFN_HDRS} ${AFN_SRCS})
-
-set_property (TARGET AFNetworking APPEND_STRING PROPERTY 
-  COMPILE_FLAGS "-fobjc-arc")
+#################### mark as advance ####################
+set(Public_3rd_HDRS ${Public_3rd_HDRS} PARENT_SCOPE)
+set(Public_3rd_LIBS ${Public_3rd_LIBS} PARENT_SCOPE)
