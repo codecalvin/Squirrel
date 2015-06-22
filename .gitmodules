@@ -1,3 +1,6 @@
 [submodule "Client/3rd/AFNetworking/AFNetworking"]
 	path = Client/3rd/AFNetworking/AFNetworking
 	url = git@github.com:AFNetworking/AFNetworking.git
+[submodule "Client/3rd/SocketRocket/SocketRocket"]
+	path = Client/3rd/SocketRocket/SocketRocket
+	url = git@github.com:square/SocketRocket.git
