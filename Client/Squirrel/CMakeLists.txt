@@ -26,7 +26,6 @@ file(GLOB_RECURSE RESOURCES *.xib)
 file(GLOB_RECURSE ICONS *.png)
 file(GLOB_RECURSE STORYBOARD *.storyboard)
 
-#message(FATAL_ERROR ${ICONS})
 set(RESOURCES ${RESOURCES} ${STORYBOARD} ${ICONS})
 
 add_executable(Squirrel MACOSX_BUNDLE ${HDRS} ${SRCS} ${RESOURCES})
@@ -51,7 +50,7 @@ GroupTopResources(*.h)
 GroupTopResources(*.m)
 GroupTopResources(*.xib)
 GroupTopResources(*.storyboard)
-GroupTopResources(*.png)
+#GroupTopResources(*.png)
 
 #################### xcode property ####################
 set_xcode_property(Squirrel GCC_GENERATE_DEBUGGING_SYMBOLS YES)
@@ -74,4 +73,4 @@ set_target_properties(Squirrel
   )
 
 # resources
-set_source_files_properties(${RESOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+set_source_files_properties(${ICONS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
