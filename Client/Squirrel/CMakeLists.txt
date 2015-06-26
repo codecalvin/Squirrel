@@ -22,11 +22,25 @@ include_directories(${PROJECT_SOURCE_DIR})
 #################### compile sources ####################
 file(GLOB_RECURSE HDRS *.h)
 file(GLOB_RECURSE SRCS *.m)
-file(GLOB_RECURSE RESOURCES *.xib)
-file(GLOB_RECURSE ICONS *.png)
-file(GLOB_RECURSE STORYBOARD *.storyboard)
+file(GLOB_RECURSE XIB_RES *.xib)
+file(GLOB_RECURSE ICON_RES *.png)
+file(GLOB_RECURSE STORY_RES *.storyboard)
 
-set(RESOURCES ${RESOURCES} ${STORYBOARD} ${ICONS})
+foreach(_i in ${XIB_RES})
+  string(TOLOWER ${_i} _temp_var)
+  string(REGEX MATCH loginviewcontroller _temp_var ${_temp_var})
+  if (_temp_var)
+	set(LOGIN_CONTROLLER_XIB ${_i})
+  endif()
+endforeach()
+
+if (LOGIN_CONTROLLER_XIB)
+  list(REMOVE_ITEM XIB_RES ${LOGIN_CONTROLLER_XIB})
+endif()
+
+set(COMPILE_RES ${XIB_RES})
+set(BUNDLE_RES ${ICON_RES} ${LOGIN_CONTROLLER_XIB} ${STORY_RES})
+set(RESOURCES ${COMPILE_RES} ${BUNDLE_RES})
 
 add_executable(Squirrel MACOSX_BUNDLE ${HDRS} ${SRCS} ${RESOURCES})
 
@@ -73,4 +87,4 @@ set_target_properties(Squirrel
   )
 
 # resources
-set_source_files_properties(${ICONS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+set_source_files_properties(${BUNDLE_RES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)

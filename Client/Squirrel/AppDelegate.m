@@ -20,11 +20,6 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    //tabBarController_ = [[DictionaryTabBarViewController alloc] init];
-    firstViewController_ = [[LoginViewController alloc] init];
-    [self.window makeKeyAndVisible];
-    [self.window addSubview:firstViewController_.view];
-    
     if ([[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY] == nil)
     {
         [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
