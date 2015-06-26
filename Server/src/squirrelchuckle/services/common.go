@@ -1,6 +1,6 @@
 package services
 
-type ServiceStub interface {
+type ServiceStuber interface {
 	Initialize() (error)
 	UnInitialize()
 }

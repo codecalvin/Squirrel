@@ -1,18 +1,17 @@
 package services
 
 import (
-
-	//"net"
 	"crypto/tls"
 )
 
 var APNConn *tls.Conn
 
-type APN_Service struct {
+type APNService struct {
 }
 
-func (APN_Service) Initialize() (error) {
+func (APNService) Initialize() (error) {
 	var err error
+	//tls.LoadX509KeyPair()
 	var conf = tls.Config {
 
 	}
@@ -25,6 +24,6 @@ func (APN_Service) Initialize() (error) {
 	return nil
 }
 
-func UnInitialize() {
+func (APNService) UnInitialize() {
 	APNConn.Close()
 }

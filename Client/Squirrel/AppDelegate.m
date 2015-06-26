@@ -30,6 +30,9 @@
         [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
     }
     
+    // Let the device know we want to receive push notifications
+    [application registerForRemoteNotifications];
+     
     return YES;
 }
 
@@ -55,4 +58,8 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+- (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
+{
+    NSLog(@"My token is: %@", deviceToken);
+}
 @end

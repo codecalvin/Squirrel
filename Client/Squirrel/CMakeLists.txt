@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project (Squirrel)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/../cmake")
-set(_ProductPackage "com.dummy.dummy" CACHE STRING "Project package id")
+set(_ProductPackage "com.dummy.squirrelproto" CACHE STRING "Project package id")
 include(Utils)
 
 set (Third_ROOT ../3rd)
@@ -60,7 +60,7 @@ set_xcode_property(Squirrel GCC_PRCOMPILE_PREFIX_HEADER YES)
 set_xcode_property(Squirrel DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 set_xcode_property(Squirrel SKIP_INSTALL "No")
 set_xcode_property(Squirrel INSTALL_PATH "$(LOCAL_APPS_DIR)")
-  
+
 # plist property
 set_xcode_property(Squirrel INFOPLIST_PREPROCESS YES)
 set(PLIST_BUNDLE_GUI_IDENTIFIER "${_ProductPackage}")
