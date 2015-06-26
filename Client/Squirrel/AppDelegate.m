@@ -24,10 +24,19 @@
     {
         [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
     }
-    
+
     // Let the device know we want to receive push notifications
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 8000
+    // iOS 8 Notifications
+    [application registerUserNotificationSettings:
+        [UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
     [application registerForRemoteNotifications];
-     
+#else
+    // iOS < 8 Notifications
+    [application registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
+#endif
+    
     return YES;
 }
 
