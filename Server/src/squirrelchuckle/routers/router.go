@@ -16,7 +16,9 @@ func init() {
 
 	router("/", "home_page", &controllers.MainController{})
 	router("/api", "api_page", &controllers.ApiController{})
-
+	
+	router("/apns/test", "apns_tester", &controllers.APNPushController{})
+	
 	router("/ws", "websocket_example:Join", &controllers.WebSocketController{})
 	router("/ws/join", "websocket_example:Join", &controllers.WebSocketController{}, "get:Join")
 

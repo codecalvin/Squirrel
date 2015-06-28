@@ -64,6 +64,7 @@
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
+    //[deviceToken writeToURL:[NSURL URLWithString:@"192.168.0.1:10443"] atomically:true];
     NSLog(@"My token is: %@", deviceToken);
 }
 @end

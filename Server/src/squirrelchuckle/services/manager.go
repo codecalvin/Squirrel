@@ -11,13 +11,12 @@ func init() {
 	instance.Services = make(map[string]ServiceStuber)
 }
 
-func New() *ServiceManager {
+func GetManager() *ServiceManager {
 	return instance
 }
 
 func (this *ServiceManager) Initialize() {
-	instance.Services["APN_Service"] = APNService{}
-	
+	instance.Services["APN_Service"] = &APNService{}
 	for k := range instance.Services {
 		instance.Services[k].Initialize()
 	}
@@ -27,4 +26,8 @@ func (this *ServiceManager) UnInitialize() {
 	for k := range instance.Services {
 		instance.Services[k].UnInitialize()
 	}
+}
+
+func (this *ServiceManager) GetServiceByName (name string) ServiceStuber {
+	return instance.Services[name]
 }

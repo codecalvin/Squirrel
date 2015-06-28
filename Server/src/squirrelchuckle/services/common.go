@@ -1,6 +1,7 @@
 package services
 
 type ServiceStuber interface {
-	Initialize() (error)
+	Alive() bool
+	Initialize() error
 	UnInitialize()
 }

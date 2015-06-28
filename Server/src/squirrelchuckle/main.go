@@ -12,11 +12,12 @@ var serviceManager *services.ServiceManager
 
 func main() {
 	defer dispose()
+	setup()
 	beego.Run()
 }
 
 func setup() {
-	serviceManager = services.New()
+	serviceManager = services.GetManager()
 	serviceManager.Initialize()
 }
 
