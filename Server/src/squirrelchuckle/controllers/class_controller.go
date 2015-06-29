@@ -19,7 +19,6 @@ func (this *ClassController) Get() {
 	c := database.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 	iterator := q.Iter()
-	print(iterator)
 	_ = iterator.All(&result)
 
 	this.Data["json"] = result

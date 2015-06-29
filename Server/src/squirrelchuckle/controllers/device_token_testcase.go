@@ -6,14 +6,13 @@ import (
 )
 
 
-type APNPushController struct {
+type APNPushTestController struct {
 	beego.Controller
 }
 
 var apnService *services.APNService
 
-func (this *APNPushController) Get() {
-
+func (this *APNPushTestController) Get() {
 	if apnService == nil || !apnService.Alive() {
 		apnService, _ = services.GetManager().GetServiceByName("APN_Service").(*services.APNService)
 	}
