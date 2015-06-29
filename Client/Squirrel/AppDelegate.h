@@ -9,10 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
-{
-    UITabBarController *tabBarController_;
-    UIViewController* firstViewController_;
-}
 
 @property (strong, nonatomic) UIWindow *window;
 

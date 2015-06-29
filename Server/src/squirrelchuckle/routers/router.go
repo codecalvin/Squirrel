@@ -7,16 +7,18 @@ import (
 )
 
 func router(rootPath, info string, c beego.ControllerInterface, mappingMethods ...string) *beego.App {
-	controllers.EndPoint[info] = rootPath
+	controllers.EndPoints[info] = rootPath
 	return beego.Router(rootPath, c, mappingMethods...)
 }
 
 func init() {
-	controllers.EndPoint = make(map[string]string)
+	controllers.EndPoints = make(map[string]string)
 
 	router("/", "home_page", &controllers.MainController{})
 	router("/api", "api_page", &controllers.ApiController{})
-
+	
+	router("/apns/test", "apns_tester", &controllers.APNPushController{})
+	
 	router("/ws", "websocket_example:Join", &controllers.WebSocketController{})
 	router("/ws/join", "websocket_example:Join", &controllers.WebSocketController{}, "get:Join")
 

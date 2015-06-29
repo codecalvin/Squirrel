@@ -25,8 +25,21 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
     errorInformation_.text = @"";
+}
+
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    if ((self = [super initWithCoder:aDecoder])) {
+        [[NSBundle mainBundle] loadNibNamed:@"LoginViewController" owner:self options:nil];
+    }
+    return self;
 }
 
 - (void)didReceiveMemoryWarning

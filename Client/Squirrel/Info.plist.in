@@ -34,6 +34,10 @@
 	<string>Main</string>
 	<key>CFBundleIconFile</key>
 	<string>Icon-57.png</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>CFBundleIconFiles</key>
 	<array>
 		<string>Icon-29</string>

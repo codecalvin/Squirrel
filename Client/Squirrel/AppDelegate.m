@@ -20,15 +20,22 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    //tabBarController_ = [[DictionaryTabBarViewController alloc] init];
-    firstViewController_ = [[LoginViewController alloc] init];
-    [self.window makeKeyAndVisible];
-    [self.window addSubview:firstViewController_.view];
-    
     if ([[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY] == nil)
     {
         [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
     }
+
+    // Let the device know we want to receive push notifications
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 8000
+    // iOS 8 Notifications
+    [application registerUserNotificationSettings:
+        [UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
+    [application registerForRemoteNotifications];
+#else
+    // iOS < 8 Notifications
+    [application registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
+#endif
     
     return YES;
 }
@@ -55,4 +62,9 @@
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+- (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
+{
+    //[deviceToken writeToURL:[NSURL URLWithString:@"192.168.0.1:10443"] atomically:true];
+    NSLog(@"My token is: %@", deviceToken);
+}
 @end

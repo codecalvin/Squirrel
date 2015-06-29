@@ -8,9 +8,9 @@ type ApiController struct {
 	beego.Controller
 }
 
-var EndPoint map[string]string
+var EndPoints map[string]string
 
 func (this *ApiController) Get() {
-	this.Data["json"] = EndPoint
+	this.Data["json"] = EndPoints
 	this.ServeJson()
 }
