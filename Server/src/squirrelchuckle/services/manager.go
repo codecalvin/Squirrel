@@ -1,14 +1,14 @@
 package services
 
 type ServiceManager struct {
-	Services map[string] ServiceStuber
+	Services map[string]ServiceInterface
 }
 
 var instance *ServiceManager
 
 func init() {
 	instance = new(ServiceManager)
-	instance.Services = make(map[string]ServiceStuber)
+	instance.Services = make(map[string]ServiceInterface)
 }
 
 func GetManager() *ServiceManager {
@@ -28,6 +28,6 @@ func (this *ServiceManager) UnInitialize() {
 	}
 }
 
-func (this *ServiceManager) GetServiceByName (name string) ServiceStuber {
+func (this *ServiceManager) GetServiceByName (name string) ServiceInterface {
 	return instance.Services[name]
 }

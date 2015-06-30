@@ -10,14 +10,14 @@ type APNPushTestController struct {
 	beego.Controller
 }
 
-var apnService *services.APNService
+var tapnService *services.APNService
 
 func (this *APNPushTestController) Get() {
 	if apnService == nil || !apnService.Alive() {
-		apnService, _ = services.GetManager().GetServiceByName("APN_Service").(*services.APNService)
+		tapnService, _ = services.GetManager().GetServiceByName("APN_Service").(*services.APNService)
 	}
 
-	result := apnService.TestAPN()
+	result := tapnService.TestAPN()
 	
 	this.Data["json"] = result
 	this.ServeJson()

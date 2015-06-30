@@ -30,7 +30,7 @@ func (this *ClassController) Post() {
 	name := input.Get("name")
 	id := input.Get("id")
 
-	c := database.MSession.DB("squirrel").C("user")
+	c := database.MSession.DB("squirrel").C("test_user")
 
 	p := ProfileInfo{UserName:name, UserId:id}
 	cinfo, err := c.Upsert(bson.M{"userid": id}, p)
