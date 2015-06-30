@@ -35,7 +35,7 @@ const (
 	TEST_ID_NUM = 0xfeeeee
 )
 
-func (s simpleAps) MarshalJSON() ([]byte, error) {
+func (s *simpleAps) MarshalJSON() ([]byte, error) {
 	toMarshal := make(map[string]interface{})
 	msgMarshal := make(map[string]interface{})
 	if s.Alert != "" {

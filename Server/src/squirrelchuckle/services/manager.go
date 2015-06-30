@@ -16,7 +16,9 @@ func GetManager() *ServiceManager {
 }
 
 func (this *ServiceManager) Initialize() {
-	instance.Services["APN_Service"] = &APNService{}
+	instance.Services["APNService"] = &APNService{}
+	instance.Services["DeviceTokenService"] = &DeviceTokenService{}
+	instance.Services["UserService"] = &UserService{}
 	for k := range instance.Services {
 		instance.Services[k].Initialize()
 	}
