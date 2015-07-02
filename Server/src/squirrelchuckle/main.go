@@ -6,6 +6,7 @@ import (
 	_ "squirrelchuckle/routers"
 	"squirrelchuckle/database"
 	"squirrelchuckle/services"
+	"squirrelchuckle/settings"
 )
 
 var serviceManager *services.ServiceManager
@@ -22,6 +23,7 @@ func setup() {
 }
 
 func dispose() {
+	settings.Serialize()
 	serviceManager.UnInitialize()
 	database.Close()
 }

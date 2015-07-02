@@ -29,13 +29,13 @@ const (
 )
 
 const (
-	APNS_TOKEN_SIZE = 32
+	DEVICE_TOKEN_LEN = 32
 
 
 	TEST_ID_NUM = 0xfeeeee
 )
 
-func (s simpleAps) MarshalJSON() ([]byte, error) {
+func (s *simpleAps) MarshalJSON() ([]byte, error) {
 	toMarshal := make(map[string]interface{})
 	msgMarshal := make(map[string]interface{})
 	if s.Alert != "" {
@@ -68,6 +68,10 @@ type APNService struct {
 }
 
 func (this *APNService) Initialize() (error) {
+	if this.alive {
+		return nil
+	}
+
 	cert, err := tls.LoadX509KeyPair("conf/SquirrelCert.pem.private", "conf/SquirrelKey.u.pem.private")
 
 	if err != nil {
@@ -84,7 +88,6 @@ func (this *APNService) Initialize() (error) {
 		return err
 	}
 
-	print("reach APNS")
 	this.alive = true
 	return nil
 }
@@ -110,7 +113,7 @@ func (this *APNService) TestAPN() error {
 	//write token
 	itemByteBuffer := new(bytes.Buffer)
 	binary.Write(itemByteBuffer, binary.BigEndian, uint8(1))
-	binary.Write(itemByteBuffer, binary.BigEndian, uint16(APNS_TOKEN_SIZE))
+	binary.Write(itemByteBuffer, binary.BigEndian, uint16(DEVICE_TOKEN_LEN))
 	binary.Write(itemByteBuffer, binary.BigEndian, token)
 
 	//write payload
@@ -141,6 +144,10 @@ func (this *APNService) TestAPN() error {
 }
 
 func (this *APNService) UnInitialize() {
+	if !this.alive {
+		return
+	}
+
 	this.alive = false
 	APNConn.Close()
 }

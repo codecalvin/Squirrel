@@ -6,20 +6,19 @@ import (
 )
 
 
-type APNPushController struct {
+type DeviceTokenController struct {
 	beego.Controller
 }
 
 var apnService *services.APNService
 
-func (this *APNPushController) Get() {
-
+func (this *DeviceTokenController) Get() {
 	if apnService == nil || !apnService.Alive() {
-		apnService, _ = services.GetManager().GetServiceByName("APN_Service").(*services.APNService)
+		apnService, _ = services.GetManager().GetServiceByName("APNService").(*services.APNService)
 	}
 
 	result := apnService.TestAPN()
-	
+
 	this.Data["json"] = result
 	this.ServeJson()
 }
