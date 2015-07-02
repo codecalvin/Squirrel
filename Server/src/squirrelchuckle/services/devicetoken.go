@@ -5,6 +5,7 @@ import (
 
 	"squirrelchuckle/database"
 	"squirrelchuckle/settings"
+	"time"
 )
 
 /*
@@ -36,6 +37,7 @@ type DeviceTokenService struct {
 	staleTick int
 
 	staleTokens []int32
+	ticker *time.Ticker
 }
 
 
@@ -79,6 +81,14 @@ func (this *DeviceTokenService) Initialize() (error) {
 		this.deviceTokens[token.token] = new(DeviceToken)
 	}
 
+	// ticker
+	this.ticker = time.NewTicker(time.Second)
+	go func () {
+		for _ = range this.ticker.C {
+			ticker(this)
+		}
+	} ()
+
 	this.alive = true
 	return nil
 }
@@ -91,9 +101,16 @@ func (this *DeviceTokenService) UnInitialize() {
 		return
 	}
 
+	this.ticker.Stop()
 	this.flush()
 	this.deviceTokens = nil
 	this.alive = false
+}
+
+func ticker(this *DeviceTokenService) {
+	this.currentTick++
+	this.staleTick = this.currentTick - connUnreachableTolerance
+	this.Stale()
 }
 
 func (this *DeviceTokenService) flush() {
@@ -137,12 +154,6 @@ func (this *DeviceTokenService) Disconnect (tokens [] int32) {
 			e.conn_reachable_tick = this.currentTick
 		}
 	}
-}
-
-// TODO: tick overflow
-func (this *DeviceTokenService) tick() {
-	this.currentTick++
-	this.staleTick = this.currentTick - connUnreachableTolerance
 }
 
 func (this *DeviceTokenService) Stale() {

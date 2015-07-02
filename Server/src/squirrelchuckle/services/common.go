@@ -12,6 +12,8 @@ const DbQueryLimit = 10000
 
 type DeviceID uint8
 
+type PostInitFunc func ()
+
 const (
 	NIL_DBKey DbKeyType = iota // nil db key
 

@@ -88,7 +88,6 @@ func (this *APNService) Initialize() (error) {
 		return err
 	}
 
-	print("reach APNS")
 	this.alive = true
 	return nil
 }
