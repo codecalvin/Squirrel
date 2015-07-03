@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
 
-	"squirrelchuckle/database"
+	"squirrelchuckle/services"
 )
 
 type ClassController struct {
@@ -16,7 +16,7 @@ type ClassController struct {
 
 func (this *ClassController) Get() {
 	var result [] ProfileInfo
-	c := database.MSession.DB("squirrel").C("user")
+	c := services.DatabaseInstance().MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 	iterator := q.Iter()
 	_ = iterator.All(&result)
@@ -30,7 +30,7 @@ func (this *ClassController) Post() {
 	name := input.Get("name")
 	id := input.Get("id")
 
-	c := database.MSession.DB("squirrel").C("test_user")
+	c := services.DatabaseInstance().MSession.DB("squirrel").C("test_user")
 
 	p := ProfileInfo{UserName:name, UserId:id}
 	cinfo, err := c.Upsert(bson.M{"userid": id}, p)

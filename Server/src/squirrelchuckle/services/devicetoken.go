@@ -3,8 +3,6 @@ import (
 	"sync"
 	"strconv"
 
-	"squirrelchuckle/database"
-	"squirrelchuckle/settings"
 	"time"
 )
 
@@ -56,18 +54,18 @@ func (this *DeviceTokenService) Initialize() (error) {
 	this.staleTokens = make([]int32, 10000)
 
 	var err error
-
-	pushUnreachableTolerance, err = strconv.Atoi(settings.AppConfig["push_unreachable_tolerance"])
+	appSetting := AppSettingInstance()
+	pushUnreachableTolerance, err = strconv.Atoi(appSetting.RunConfig("push_unreachable_tolerance"))
 	if err != nil {
 		pushUnreachableTolerance = defaultPushUnreachableTolerance
 	}
 
-	connUnreachableTolerance, err = strconv.Atoi(settings.AppConfig["conn_unreachable_tolerance"])
+	connUnreachableTolerance, err = strconv.Atoi(appSetting.RunConfig("conn_unreachable_tolerance"))
 	if err != nil {
 		connUnreachableTolerance = defaultConnUnreachableTolerance
 	}
 
-	c := database.MSession.DB("squirrel").C("device_token")
+	c := DatabaseInstance().MSession.DB("squirrel").C("device_token")
 	q := c.Find(nil)
 	iterator := q.Iter()
 

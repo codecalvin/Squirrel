@@ -31,7 +31,6 @@ const (
 const (
 	DEVICE_TOKEN_LEN = 32
 
-
 	TEST_ID_NUM = 0xfeeeee
 )
 

@@ -1,6 +1,5 @@
 package services
 import (
-	"squirrelchuckle/database"
 	"sync"
 )
 
@@ -45,7 +44,7 @@ func (this *UserService) Initialize() error {
 
 	this.users = make(map[string]UserInfo)
 
-	c := database.MSession.DB("squirrel").C("user")
+	c := DatabaseInstance().MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 
 	userInfo := make([]UserInfo, DbQueryLimit)
