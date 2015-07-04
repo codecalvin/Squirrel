@@ -62,37 +62,52 @@ var APNConn *tls.Conn
 //ed8bf85a 32fd6a3e 6339531a e6fe9082 4d67df10 0a11f5df e7f22ae0 f92a50b8
 var device_token string = "ed8bf85a32fd6a3e6339531ae6fe90824d67df100a11f5dfe7f22ae0f92a50b8"
 
-type APNService struct {
+type ApplePushService struct {
 	alive bool
 }
 
-func (this *APNService) Initialize() (error) {
+func (this *ApplePushService) Alive() bool {
+	return this.alive
+}
+
+func (this *ApplePushService) Name() string {
+	return "ApplePushService"
+}
+
+func (this *ApplePushService) Initialize() (error) {
 	if this.alive {
 		return nil
 	}
 
+	var conf *tls.Config
 	cert, err := tls.LoadX509KeyPair("conf/SquirrelCert.pem.private", "conf/SquirrelKey.u.pem.private")
-
 	if err != nil {
-		panic(err)
+		goto stale
 	}
+	conf = &tls.Config { Certificates: []tls.Certificate{cert} }
 
-	var conf = tls.Config{
-		Certificates: []tls.Certificate{cert},
-	}
-
-	APNConn, err = tls.Dial("tcp", "gateway.sandbox.push.apple.com:2195", &conf)
-	if err != nil {
-		panic("cannot reach APNs")
-		return err
+	if APNConn, err = tls.Dial("tcp", "gateway.sandbox.push.apple.com:2195", conf); err != nil {
+		goto stale
 	}
 
 	this.alive = true
+//success:
 	return nil
+
+stale:
+	return err
 }
 
-func (this *APNService) TestAPN() error {
+func (this *ApplePushService) UnInitialize() {
+	if !this.alive {
+		return
+	}
 
+	APNConn.Close()
+	this.alive = false
+}
+
+func (this *ApplePushService) TestAPN() error {
 	token, err := hex.DecodeString(device_token)
 	if err != nil {
 		return fmt.Errorf("%v\n", err)
@@ -140,18 +155,4 @@ func (this *APNService) TestAPN() error {
 	}
 	
 	return writeErr
-}
-
-func (this *APNService) UnInitialize() {
-	if !this.alive {
-		return
-	}
-
-	this.alive = false
-	APNConn.Close()
-}
-
-
-func (this *APNService) Alive() bool {
-	return this.alive
 }

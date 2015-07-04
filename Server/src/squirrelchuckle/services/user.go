@@ -1,6 +1,8 @@
 package services
 import (
 	"sync"
+	
+	"squirrelchuckle/core"
 )
 
 type UserService struct {
@@ -16,8 +18,8 @@ type Avatar struct {
 }
 
 type Device struct {
-	DeviceID
-	UserID DbKeyType
+	core.DeviceID
+	UserID core.DbKeyType
 }
 
 type Subscribe struct {
@@ -35,6 +37,15 @@ type UserInfo struct {
 	dirty bool
 }
 
+
+func (this *UserService) Alive() bool {
+	return this.alive
+}
+
+func (this *UserService) Name() string {
+	return "UserService"
+}
+
 func (this *UserService) Initialize() error {
 	this.Lock()
 	defer this.Unlock()
@@ -44,20 +55,20 @@ func (this *UserService) Initialize() error {
 
 	this.users = make(map[string]UserInfo)
 
-	c := DatabaseInstance().MSession.DB("squirrel").C("user")
+	c := core.SquirrelApp.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 
-	userInfo := make([]UserInfo, DbQueryLimit)
+	userInfo := make([]UserInfo, core.DbQueryLimit)
 
 	for {
-		q.Limit(DbQueryLimit).All(&userInfo)
+		q.Limit(core.DbQueryLimit).All(&userInfo)
 		if len(userInfo) == 0 {
 			break
 		}
 		for _, user := range userInfo {
 			this.users[user.Email] = user
 		}
-		q.Skip(DbQueryLimit)
+		q.Skip(core.DbQueryLimit)
 	}
 
 	this.alive = true
@@ -72,8 +83,4 @@ func (this *UserService) UnInitialize() {
 	}
 
 	this.alive = false
-}
-
-func (this *UserService) Alive() bool {
-	return this.alive
 }

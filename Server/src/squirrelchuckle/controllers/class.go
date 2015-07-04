@@ -8,15 +8,26 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"squirrelchuckle/services"
+	"squirrelchuckle/core"
+	"golang.org/x/tools/godoc/redirect"
 )
 
 type ClassController struct {
 	beego.Controller
 }
 
+var database *core.Database
 func (this *ClassController) Get() {
+	if database == nil {
+		if database = core.SquirrelApp.GetServiceByName("Database"); database == nil || database.Alive() {
+			database = nil
+			// Todo
+			redirect.Handler("Service down")
+		}
+	}
+
 	var result [] ProfileInfo
-	c := services.DatabaseInstance().MSession.DB("squirrel").C("user")
+	c := database.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 	iterator := q.Iter()
 	_ = iterator.All(&result)
@@ -30,7 +41,7 @@ func (this *ClassController) Post() {
 	name := input.Get("name")
 	id := input.Get("id")
 
-	c := services.DatabaseInstance().MSession.DB("squirrel").C("test_user")
+	c := database.MSession.DB("squirrel").C("test_user")
 
 	p := ProfileInfo{UserName:name, UserId:id}
 	cinfo, err := c.Upsert(bson.M{"userid": id}, p)

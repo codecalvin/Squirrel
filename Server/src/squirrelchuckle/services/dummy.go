@@ -6,6 +6,14 @@ type DummyService struct {
 	sync.Mutex
 }
 
+func (this *DummyService) Alive() bool {
+	return this.alive
+}
+
+func (this *DummyService) Name() string {
+	return "DummyService"
+}
+
 func (this *DummyService) Initialize() error {
 	this.Lock()
 	defer this.Unlock()
@@ -27,8 +35,4 @@ func (this *DummyService) UnInitialize() {
 	}
 
 	this.alive = false
-}
-
-func (this *DummyService) Alive() bool {
-	return this.alive
 }

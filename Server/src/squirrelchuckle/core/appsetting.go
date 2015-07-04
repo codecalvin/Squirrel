@@ -1,4 +1,4 @@
-package services
+package core
 
 import (
 	"os"
@@ -23,14 +23,6 @@ type AppSetting struct {
 	dirty bool
 }
 
-var instance *AppSetting
-func AppSettingInstance() *AppSetting {
-	if instance == nil {
-		instance = &AppSetting{}
-	}
-	return instance
-}
-
 func (this *AppSetting) RunConfig(key string) string{
 	value, _ := this.runConfig[key]
 	return value
@@ -40,6 +32,14 @@ func (this *AppSetting) UpdateRunConfig(key, value string) string {
 	this.runConfig[key] = value
 	this.dirty = true
 	return value
+}
+
+func (this *AppSetting) Alive() bool {
+	return this.alive
+}
+
+func (this *AppSetting) Name() string {
+	return "AppSetting"
 }
 
 func (this *AppSetting) Initialize() error {
@@ -58,37 +58,31 @@ func (this *AppSetting) Initialize() error {
 		}
 	}
 
-	var ok bool
+	ok := true
 	settings, err := ioutil.ReadFile(appConfigPath)
 	if err != nil {
 		goto stale
 	}
 
 	this.appConfig = make(map[string]string)
-	err = json.Unmarshal(settings, &this.appConfig)
-	if err != nil {
+	if err = json.Unmarshal(settings, &this.appConfig); err != nil {
 		goto stale
 	}
 
-	this.AppDatabaseUrl, ok = this.appConfig["db_url"]
-	if !ok {
+	if this.AppDatabaseUrl, ok = this.appConfig["db_url"]; !ok {
 		this.AppDatabaseUrl = "127.0.0.1"
 	}
 
-	this.AppDatabasePort, ok = this.appConfig["db_port"]
-	if !ok {
+	if this.AppDatabasePort, ok = this.appConfig["db_port"]; !ok {
 		this.AppDatabasePort = "27017"
 	}
 
 	this.AppDatabaseAddr = fmt.Sprintf("%v:%v", this.AppDatabaseUrl, this.AppDatabasePort)
 
-	this.runConfig = make(map[string]string)
-	if utility.FileExists(this.runConfigPath) {
-		settings, err = ioutil.ReadFile(this.runConfigPath)
-		if err != nil {
-			goto stale
+	if this.runConfig = make(map[string]string); utility.FileExists(this.runConfigPath) {
+		if settings, err = ioutil.ReadFile(this.runConfigPath); err == nil {
+			err = json.Unmarshal(settings, &this.runConfig)
 		}
-		err = json.Unmarshal(settings, &this.runConfig)
 	}
 
 	if err != nil {
@@ -101,6 +95,7 @@ func (this *AppSetting) Initialize() error {
 	return nil
 
 stale:
+	SquirrelApp.Critical("AppSetting Initialize failed. Error: %v", err)
 	return err
 }
 
@@ -111,10 +106,6 @@ func (this *AppSetting) UnInitialize() {
 	}
 }
 
-func (this *AppSetting) Alive() bool {
-	return this.alive
-}
-
 func (this *AppSetting) Serialize() error {
 	var err error
 	if !this.alive || !this.dirty {
@@ -122,19 +113,17 @@ func (this *AppSetting) Serialize() error {
 	}
 
 	var file *os.File
-	content, err := json.MarshalIndent(this.runConfig, "", "    ")
-	if err != nil {
+	var content []byte
+	if content, err = json.MarshalIndent(this.runConfig, "", "    "); err != nil {
 		goto stale
 	}
 
-	file, err = os.Open(this.runConfigPath)
-	if err != nil {
+	if file, err = os.Open(this.runConfigPath); err != nil {
 		goto stale
 	}
 
 	defer file.Close()
-	_, err = file.Write(content)
-	if err != nil {
+	if _, err = file.Write(content); err != nil {
 		goto stale
 	}
 
@@ -144,5 +133,6 @@ func (this *AppSetting) Serialize() error {
 	return nil
 
 stale:
+	SquirrelApp.Critical("AppSetting serialize failed, need rescue. Error: %v", err)
 	return err
 }

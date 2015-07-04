@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"time"
+	"squirrelchuckle/core"
 )
 
 /*
@@ -21,9 +22,9 @@ import (
  */
 
 type DeviceToken struct {
-	push_unreachable_count int
-	conn_reachable_tick int
-	user_id DbKeyType
+	pushUnreachableCount int
+	connReachableTick int
+	userId core.DbKeyType
 }
 
 type DeviceTokenService struct {
@@ -42,6 +43,15 @@ type DeviceTokenService struct {
 var defaultPushUnreachableTolerance, defaultConnUnreachableTolerance int = 20, 7 * 24
 var pushUnreachableTolerance, connUnreachableTolerance int
 
+
+func (this *DeviceTokenService) Alive() bool {
+	return this.alive
+}
+
+func (this *DeviceTokenService) Name() string {
+	return "DeviceTokenService"
+}
+
 func (this *DeviceTokenService) Initialize() (error) {
 	this.Lock()
 	defer this.Unlock()
@@ -54,18 +64,15 @@ func (this *DeviceTokenService) Initialize() (error) {
 	this.staleTokens = make([]int32, 10000)
 
 	var err error
-	appSetting := AppSettingInstance()
-	pushUnreachableTolerance, err = strconv.Atoi(appSetting.RunConfig("push_unreachable_tolerance"))
-	if err != nil {
+	if pushUnreachableTolerance, err = strconv.Atoi(core.SquirrelApp.RunConfig("push_unreachable_tolerance")); err != nil {
 		pushUnreachableTolerance = defaultPushUnreachableTolerance
 	}
 
-	connUnreachableTolerance, err = strconv.Atoi(appSetting.RunConfig("conn_unreachable_tolerance"))
-	if err != nil {
+	if connUnreachableTolerance, err = strconv.Atoi(core.SquirrelApp.RunConfig("conn_unreachable_tolerance")); err != nil {
 		connUnreachableTolerance = defaultConnUnreachableTolerance
 	}
 
-	c := DatabaseInstance().MSession.DB("squirrel").C("device_token")
+	c := core.SquirrelApp.MSession.DB("squirrel").C("device_token")
 	q := c.Find(nil)
 	iterator := q.Iter()
 
@@ -116,10 +123,6 @@ func (this *DeviceTokenService) flush() {
 	defer this.Unlock()
 }
 
-func (this *DeviceTokenService) Alive() bool {
-	return this.alive
-}
-
 /****************************************************
 	methods
  ****************************************************/
@@ -128,8 +131,8 @@ func (this *DeviceTokenService) Add(tokens []int32) {
 	for _, token := range tokens {
 		e := this.deviceTokens[token]
 		if e != nil {
-			e.conn_reachable_tick = this.currentTick
-			e.push_unreachable_count = 0
+			e.connReachableTick = this.currentTick
+			e.pushUnreachableCount = 0
 		} else {
 			this.deviceTokens[token] = new (DeviceToken)
 		}
@@ -140,7 +143,7 @@ func (this *DeviceTokenService) Touch (tokens []int32) {
 	for _, token := range tokens {
 		e := this.deviceTokens[token]
 		if e != nil {
-			e.push_unreachable_count = 0
+			e.pushUnreachableCount = 0
 		}
 	}
 }
@@ -149,7 +152,7 @@ func (this *DeviceTokenService) Disconnect (tokens [] int32) {
 	for _, token := range tokens {
 		e := this.deviceTokens[token]
 		if e != nil {
-			e.conn_reachable_tick = this.currentTick
+			e.connReachableTick = this.currentTick
 		}
 	}
 }
@@ -158,7 +161,7 @@ func (this *DeviceTokenService) Stale() {
 
 	// TODO: tick overflow
 	for k, v := range this.deviceTokens {
-		if v.push_unreachable_count >= pushUnreachableTolerance && v.conn_reachable_tick >= this.staleTick {
+		if v.pushUnreachableCount >= pushUnreachableTolerance && v.connReachableTick >= this.staleTick {
 			this.staleTokens = append(this.staleTokens, k)
 		}
 	}

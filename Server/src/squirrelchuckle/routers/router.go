@@ -4,6 +4,8 @@ import (
 	"github.com/astaxie/beego"
 
 	"squirrelchuckle/controllers"
+	"squirrelchuckle/core"
+	"squirrelchuckle/services"
 )
 
 func router(rootPath, info string, c beego.ControllerInterface, mappingMethods ...string) *beego.App {
@@ -13,6 +15,7 @@ func router(rootPath, info string, c beego.ControllerInterface, mappingMethods .
 
 func init() {
 	controllers.EndPoints = make(map[string]string)
+	registerServices()
 
 	router("/", "home_page", &controllers.MainController{})
 	router("/api", "api_page", &controllers.ApiController{})
@@ -29,4 +32,9 @@ func init() {
 
 	router("/classes", "classes", &controllers.ClassController{})
 	router("/classes/:id", "class_url", &controllers.ClassController{})
+}
+
+func registerServices() {
+	core.SquirrelApp.RegisterService(&services.ApplePushService{})
+	core.SquirrelApp.RegisterService(&services.DeviceTokenService{})
 }

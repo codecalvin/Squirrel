@@ -1,7 +1,8 @@
-package services
+package core
 
 type ServiceInterface interface {
 	Alive() bool
+	Name() string
 	Initialize() error
 	UnInitialize()
 }
