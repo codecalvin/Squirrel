@@ -22,5 +22,6 @@ type AdminController struct {
 
 func (this *AdminController) Get() {
 	core.CloseChan <- true
+	this.Ctx.WriteString("Service down")
 	this.ServeJson()
 }

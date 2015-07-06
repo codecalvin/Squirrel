@@ -5,24 +5,28 @@ type ServiceManager struct {
 	services map[string]ServiceInterface
 	spawnChan chan ServiceInterface
 	termChan chan bool
-
 	postInitHandler map[string] []PostInitFunc
 	sync.Mutex
 	alive bool
 }
 
 func spawnRouting(this *ServiceManager) {
-	for spawn := range this.spawnChan {
-		name := spawn.Name()
-		if err := spawn.Initialize(); err != nil {
-			SquirrelApp.Critical("[ServiceManager]: Failed to initialize service %v. Error: %v", name, err)
-		} else {
-			this.Lock()
-			this.services[name] = spawn
-			this.Unlock()
+loop:
+	for {
+		select {
+		case spawn := <-this.spawnChan:
+			name := spawn.Name()
+			if err := spawn.Initialize(); err == nil {
+				this.Lock()
+				this.services[name] = spawn
+				this.Unlock()
+			} else {
+				SquirrelApp.Critical("[ServiceManager]: Failed to initialize service %v. Error: %v", name, err)
+			}
+		case <- this.termChan:
+			break loop
 		}
 	}
-	close(this.termChan)
 }
 
 func (this *ServiceManager) Alive() bool {
@@ -37,7 +41,7 @@ func (this *ServiceManager) Initialize() error {
 	this.services = make(map[string]ServiceInterface)
 	this.spawnChan = make(chan ServiceInterface)
 	this.termChan = make(chan bool)
-
+	
 	this.postInitHandler = make(map[string] []PostInitFunc)
 	this.alive = true
 
@@ -47,16 +51,16 @@ func (this *ServiceManager) Initialize() error {
 }
 
 func (this *ServiceManager) UnInitialize() {
+	close(this.termChan)
 	close(this.spawnChan)
-	<- this.termChan
-
 	this.Lock()
 	defer this.Unlock()
 
 	for k := range this.services {
+		SquirrelApp.Info("Unloading service %v", this.services[k].Name())
 		this.services[k].UnInitialize()
 	}
-
+	this.services = nil
 	this.alive = false
 }
 
@@ -75,23 +79,32 @@ func (this *ServiceManager) GetServiceByName (name string) ServiceInterface {
 }
 
 func (this *ServiceManager) RegisterService (service ServiceInterface) bool {
-	this.Lock()
-	defer this.Unlock()
 	if !this.alive {
 		return false
 	}
-
 	name := service.Name()
-	if _, ok := this.services[name]; !ok {
-		if service.Alive() {
+
+	updateServices := func () int {
+		this.Lock()
+		defer this.Unlock()
+		if _, ok := this.services[name]; ok {
+			SquirrelApp.Warning("[ServiceManager]: Already register service :%v", name)
+			return 0
+		} else if service.Alive() {
 			this.services[name] = service
-		} else {
-			this.spawnChan <- service
+			return 1
 		}
+		return 2
+	}
+	
+	switch updateServices() {
+	case 2:
+		this.spawnChan <- service
+		fallthrough
+	case 1:
 		SquirrelApp.Info("[ServiceManager]: Register service :%v", name)
 		return true
+	default:
+		return false
 	}
-
-	SquirrelApp.Warning("[ServiceManager]: Already register service :%v", name)
-	return false
 }

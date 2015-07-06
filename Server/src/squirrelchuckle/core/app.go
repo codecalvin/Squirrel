@@ -16,14 +16,16 @@ var CloseChan chan bool
 func init() {
 	CloseChan = make(chan bool)
 	SquirrelApp = NewApp()
-	if err := SquirrelApp.Initialize(); err == nil {
+	if err := SquirrelApp.Initialize(); err != nil {
 		SquirrelApp.Fatal("SquirrelApp initialize failed. Fatal: %v", err)
 	}
 }
 
 func Run() {
-	defer CloseApp()
-	<-CloseChan
+	go func() {
+		defer CloseApp()
+		<-CloseChan
+	} ()
 }
 
 func NewApp() *Squirrel {
@@ -48,12 +50,11 @@ func (this *Squirrel) Initialize() error {
 	this.Database = &Database{}
 	this.ServiceManager = &ServiceManager{}
 
-	err := this.AppSetting.Initialize()
-	if err == nil {
-		err = this.Database.Initialize()
-	}
-	if err == nil {
-		err = this.ServiceManager.Initialize()
+	var err error
+	if err = this.AppSetting.Initialize(); err == nil {
+		if err = this.Database.Initialize(); err == nil {
+			err = this.ServiceManager.Initialize()
+		}
 	}
 
 	return err

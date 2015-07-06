@@ -37,6 +37,7 @@ type DeviceTokenService struct {
 
 	staleTokens []int32
 	ticker *time.Ticker
+	stopChan chan bool
 }
 
 
@@ -62,7 +63,8 @@ func (this *DeviceTokenService) Initialize() (error) {
 
 	this.changedTokens = make(map[int32]*DeviceToken)
 	this.staleTokens = make([]int32, 10000)
-
+	this.stopChan = make(chan bool)
+	
 	var err error
 	if pushUnreachableTolerance, err = strconv.Atoi(core.SquirrelApp.RunConfig("push_unreachable_tolerance")); err != nil {
 		pushUnreachableTolerance = defaultPushUnreachableTolerance
@@ -89,8 +91,14 @@ func (this *DeviceTokenService) Initialize() (error) {
 	// ticker
 	this.ticker = time.NewTicker(time.Second)
 	go func () {
-		for _ = range this.ticker.C {
-			ticker(this)
+loop:
+		for {
+			select {
+			case <-this.ticker.C:
+				ticker(this)
+			case <- this.stopChan:
+				break loop
+			}
 		}
 	} ()
 
@@ -106,6 +114,7 @@ func (this *DeviceTokenService) UnInitialize() {
 		return
 	}
 
+	this.stopChan <- true
 	this.ticker.Stop()
 	this.flush()
 	this.deviceTokens = nil

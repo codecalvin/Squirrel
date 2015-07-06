@@ -19,6 +19,7 @@ func init() {
 
 	router("/", "home_page", &controllers.MainController{})
 	router("/api", "api_page", &controllers.ApiController{})
+	router("/api/admin", "admin_page", &controllers.AdminController{})
 	
 	router("/apns/test", "apns_tester", &controllers.APNPushTestController{})
 	
@@ -37,4 +38,5 @@ func init() {
 func registerServices() {
 	core.SquirrelApp.RegisterService(&services.ApplePushService{})
 	core.SquirrelApp.RegisterService(&services.DeviceTokenService{})
+	
 }

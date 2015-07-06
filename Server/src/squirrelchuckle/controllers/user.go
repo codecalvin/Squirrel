@@ -8,7 +8,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	
 	"squirrelchuckle/core"
-	"squirrelchuckle/services"
 )
 
 type UsersController struct {
@@ -22,10 +21,9 @@ type ProfileInfo struct {
 
 func (this *UsersController) Get() {
 	var result [] ProfileInfo
-	c := core.Squirrel.MSession.DB("squirrel").C("user")
+	c := core.SquirrelApp.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 	iterator := q.Iter()
-	print(iterator)
 	_ = iterator.All(&result)
 
 	this.Data["json"] = result
@@ -37,16 +35,14 @@ func (this *UsersController) Post() {
 	name := input.Get("name")
 	id := input.Get("id")
 
-	c := services.DatabaseInstance().MSession.DB("squirrel").C("user")
+	c := core.SquirrelApp.MSession.DB("squirrel").C("user")
 
 	p := ProfileInfo{UserName:name, UserId:id}
-	cinfo, err := c.Upsert(bson.M{"userid": id}, p)
-
-	if err != nil{
+	if cInfo, err := c.Upsert(bson.M{"userid": id}, p); err != nil {
 		this.Ctx.Output.Body([]byte(err.Error()))
+	} else {
+		this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cInfo, name, id)))
 	}
-
-	this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cinfo, name, id)))
 }
 
 
