@@ -15,17 +15,31 @@ type ClassController struct {
 }
 
 func (this *ClassController) Get() {
-	var result [] ProfileInfo
-	c := database.MSession.DB("squirrel").C("user")
-	q := c.Find(nil)
-	iterator := q.Iter()
-	_ = iterator.All(&result)
-
-	this.Data["json"] = result
+	fmt.Print("\nClassController::Get()\n") 
+        
+	var result [] ClassItem
+	c := database.MSession.DB("squirrel").C("class")
+	err := c.Find(nil).All(&result)
+	if err != nil{
+		this.Ctx.Output.Body([]byte(err.Error()))
+	}
+	
+	briefItems := map[string]string{}
+	for index := 0; index < len(result); index++{
+		if len(result[index].ElementType_UniqueKey) < 1{
+			continue
+			}
+		briefItems[result[index].ElementType_UniqueKey] = result[index].ElementType_ClassName
+	}
+	
+	fmt.Print(briefItems)
+	fmt.Print("\n")
+	this.Data["json"] = briefItems
 	this.ServeJson()
 }
 
 func (this *ClassController) Post() {
+	fmt.Print("post go:")
 	input := this.Input()
 	name := input.Get("name")
 	id := input.Get("id")

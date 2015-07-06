@@ -8,7 +8,7 @@
 
 #import "GeneralTabBarViewController.h"
 
-#define DICTIONARY_TAB_BAR_TITLE1 @"Register"
+#define DICTIONARY_TAB_BAR_TITLE1 @"Home"
 #define DICTIONARY_TAB_BAR_TITLE2 @"Publish"
 #define DICTIONARY_TAB_BAR_TITLE3 @"BBS"
 

@@ -13,7 +13,9 @@
 #import "AdminPublish/AdminPublishTableViewCell.h"
 #import "AFNetworking.h"
 #import "DataModel/MeViewData.h"
-
+#import "Login/LoginViewController.h"
+#import "TabBarViewController/DictionaryTabBarViewController.h"
+#import "Define.h"
 @interface MeViewController ()
 {
     IBOutlet UITableView* classesTableView_;
@@ -27,16 +29,36 @@
 {
     [super viewDidLoad];
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Setting"
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Setting"
                                                                               style:UIBarButtonItemStyleDone
                                                                              target:self
                                                                              action:@selector(onSetting)];
+    
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Sign out"
+                                                                             style:UIBarButtonItemStyleDone
+                                                                            target:self
+                                                                            action:@selector(onSignOut)];
+    
+    self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
+    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+    
+    
 }
 
 - (void)onSetting
 {
     [self.navigationController pushViewController:[SettingViewController singleton] animated:YES];
 }
+
+- (void)onSignOut
+{
+    
+    UIView* window = [[DictionaryTabBarViewController singleton].view superview];
+    [[DictionaryTabBarViewController singleton].view removeFromSuperview];
+    
+    [window viewWithTag:LIGIN_VIEW_TAG].hidden = NO;
+}
+
 
 - (void)didReceiveMemoryWarning
 {
@@ -46,13 +68,30 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    dispatch_async(BackGroundQueue, ^{
-        NSString* urlString = [NSString stringWithFormat:@"%@%@%@", SERVER_IP, URL_PART_ONE_USER_CLASS, [MeViewData singleton].userUniqueName];
-        NSURL* url = [NSURL URLWithString: urlString];
-        NSData* data = [NSData dataWithContentsOfURL: url];
-        [self performSelectorOnMainThread:@selector(fetchedData:) withObject:data waitUntilDone:YES];
-    });
+    NSString* urlString = [NSString stringWithFormat:@"%@%@%@", SERVER_IP, URL_PART_ONE_USER_CLASS, [MeViewData singleton].userUniqueName];
+    [self request:RequestTypeGet urlString:urlString parameters:nil];
 }
+
+- (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject
+{
+    [super onSuccess:operation responseObject:responseObject];
+    
+    [[MeViewData singleton] reset];
+    [[MeViewData singleton] setJsonDictionaryData:responseObject];
+    
+    [classesTableView_ reloadData];
+}
+
+- (void)onFail:(AFHTTPRequestOperation *)operation error:(NSError*)error
+{
+    [super onFail:operation error:error];
+    
+    [[MeViewData singleton] reset];
+    
+    [classesTableView_ reloadData];
+
+}
+
 
 - (void)fetchedData:(NSData *)responseData
 {

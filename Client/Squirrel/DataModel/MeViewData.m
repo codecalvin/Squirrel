@@ -156,6 +156,11 @@
         [notificationDataItem_ setUniqueKey:key];
         [notificationDataItem_ setClassName:value];
         
+        if ([value rangeOfString:@"Not Found!"].length != 0)
+        {
+            continue;
+        }
+        
         [self setNotificationDataItem:notificationDataItem_];
     }
 }

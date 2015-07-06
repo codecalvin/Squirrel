@@ -47,10 +47,31 @@
 
 
 @implementation UserRegisterNotificationViewController
+//
+//- (id)init
+//{
+//    if (self = [super init])
+//    {
+//        NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"UserRegisterNotificationViewController" owner:self options:nil];
+//        //NSArray *nib =[[NSBundle mainBundle]loadNibNamed:@"test" owner:self options:nil];
+//        self.view = [nib objectAtIndex:0];
+//    }
+//    return self;
+//}
+
+//- (id)initWithCoder:(NSCoder *)aDecoder
+//{
+//    if ((self = [super initWithCoder:aDecoder])) {
+//        [[NSBundle mainBundle] loadNibNamed:@"UserRegisterNotificationViewController" owner:self options:nil];
+//    }
+//    return self;
+//}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
 }
 
 - (void)viewWillAppear:(BOOL)animated

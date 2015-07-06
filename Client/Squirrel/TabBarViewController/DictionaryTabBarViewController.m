@@ -25,6 +25,7 @@
 
 - (void)loadViewControllers
 {
+    // [[MyViewController alloc] initWithNibName:@"ipadNIB" bundle:nil]
     [self addSubViewControllerInstance:[[UserRegisterNotificationViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE1];
     [self addSubViewControllerInstance:[[AdminPublishViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE2];
     [self addSubViewControllerInstance:[[BBSViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE3];
@@ -68,18 +69,15 @@
     return imageName;
 }
 
-- (NSString*)getSelectedImage:(int)index
-{
-    NSString* imageName = nil;
-    imageName = nil;
-    return imageName;
-}
-
-- (NSString*)getUnselectedImage:(int)index
-{
-    NSString* imageName = nil;
-    return imageName;
-}
+//- (NSString*)getSelectedImage:(int)index
+//{
+//    return [super getSelectedImage:index];
+//}
+//
+//- (NSString*)getUnselectedImage:(int)index
+//{
+//    return [super getUnselectedImage:index];
+//}
 
 - (BOOL)customizeTabItemTextColor
 {
@@ -98,7 +96,7 @@
 
 - (BOOL)customizeBackgroundImage
 {
-    return NO;
+    return YES;
 }
 
 @end

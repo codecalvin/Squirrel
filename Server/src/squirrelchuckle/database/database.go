@@ -8,6 +8,10 @@ import (
 
 var MSession *mgo.Session
 
+var DataBaseNameString string
+var DataBaseClassCollectionNameString string
+var DataBaseUserCollectionNameString string
+
 func init() {
 	var err error
 	MSession, err = mgo.Dial(settings.AppDatabaseAddr)
@@ -15,6 +19,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	
+	DataBaseNameString = "squirrel" 
+	DataBaseClassCollectionNameString = "class" 
+	DataBaseUserCollectionNameString = "user"
 }
 
 func Close() {

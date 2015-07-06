@@ -10,7 +10,9 @@
 #import "AFNetworking.h"
 #import "Define.h"
 #import "DataModel/MeViewData.h"
-
+#import "URLManager/URLManager.h"
+#import "OneClassRegisterStudentViewController.h"
+#import "DataModel/OneClassReigsterStudentData.h"
 @interface NotificationPublishViewController ()
 {
     IBOutlet UITextField* classNameTextField_;
@@ -22,13 +24,20 @@
     IBOutlet UIButton* deleteButton_;
     IBOutlet UIButton* registerButton_;
     
+    IBOutlet UILabel* registerCountLabel_;
+    
     NotificationDataItem* notificationDataItem_;
     UserRegisterDataItem* userRegisterDataItem_;
     
     EditType editType_;
+    
+    OneClassRegisterStudentViewController* oneClassRegisterStudentViewController_;
+    
+    BOOL bCurrentUserRegistered_;
 }
 - (IBAction)onDelete:(id)sender;
 - (IBAction)onRegister:(id)sender;
+- (IBAction)onStudentDetail:(id)sender;
 
 @end
 
@@ -45,6 +54,8 @@
         
         self.hidesBottomBarWhenPushed = YES;
         editType_ = EditType_Add;
+        
+        oneClassRegisterStudentViewController_ = [[OneClassRegisterStudentViewController alloc] init];
     }
     return self;
 }
@@ -57,6 +68,11 @@
                                                                               style:UIBarButtonItemStyleDone
                                                                              target:self
                                                                              action:@selector(onSave)];
+    
+    self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
+    
+    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+    
 }
 
 - (void)onSave
@@ -69,71 +85,178 @@
     
     [[AdminPublishViewData singleton] setNotificationDataItem:notificationDataItem_];
     
-    [self postWithAFHttp];
+    [self postClass];
 }
 
-- (void)postWithAFHttp
+- (void)postClass
 {
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-
+    NSString* urlString = [URLManager urlString:URLTypeClassPost];
     NSDictionary *parameters = [notificationDataItem_ getDataItemEelements];
+    [self request:RequestTypePost urlString:urlString parameters:parameters];
+}
+
+- (void)getOneClass
+{
+    NSString* key = [notificationDataItem_ getUniqueKey];
+    NSString* urlString = [URLManager urlString:URLTypeOneClass variableKey:key];
+    [self request:RequestTypeGet urlString:urlString parameters:nil];
+}
+
+- (void)getOneClassUserCount
+{
+    registerCountLabel_.text = @"";
     
-    NSString* urlString = [NSString stringWithFormat:@"%@/API1/Post", SERVER_IP];
-    [manager POST:urlString parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"JSON: %@", responseObject);
+    NSString* key = [notificationDataItem_ getUniqueKey];
+    NSString* urlString = [URLManager urlString:URLTypeOneClassUserCount variableKey:key];
+    [self request:RequestTypeGet urlString:urlString parameters:nil];
+}
+
+- (void)deleteOneClass
+{
+    NSString* key = [notificationDataItem_ getUniqueKey];
+    NSString* urlString = [URLManager urlString:URLTypeOneClass variableKey:key];
+    [self request:RequestTypeDelete urlString:urlString parameters:nil];
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)registerOneUser
+{
+    NSString* uniqueNameKey = [MeViewData singleton].userUniqueName;
+    [userRegisterDataItem_ setUniqueKey:[notificationDataItem_ getUniqueKey]];
+    [userRegisterDataItem_ setClassName:[notificationDataItem_ getClassName]];
+    [userRegisterDataItem_ setUserName:uniqueNameKey];
+    [userRegisterDataItem_ setUserUniqueKey:uniqueNameKey];
+    NSDictionary *parameters = [userRegisterDataItem_ getDataItemEelements];
+    
+    NSString* urlString = [URLManager urlString:URLTypeUserRegister];
+    [self request:RequestTypePost urlString:urlString parameters:parameters];
+    //[self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)unregisterOneUser
+{
+    NSString* uniqueNameKey = [MeViewData singleton].userUniqueName;
+    [userRegisterDataItem_ setUniqueKey:[notificationDataItem_ getUniqueKey]];
+    [userRegisterDataItem_ setClassName:[notificationDataItem_ getClassName]];
+    [userRegisterDataItem_ setUserName:uniqueNameKey];
+    [userRegisterDataItem_ setUserUniqueKey:uniqueNameKey];
+    NSDictionary *parameters = [userRegisterDataItem_ getDataItemEelements];
+    
+    NSString* urlString = [URLManager urlString:URLTypeUserUnregister];
+    [self request:RequestTypePost urlString:urlString parameters:parameters];
+
+}
+
+- (void)queryRegisterStatus
+{
+    NSString* uniqueNameKey = [MeViewData singleton].userUniqueName;
+    [userRegisterDataItem_ setUniqueKey:[notificationDataItem_ getUniqueKey]];
+    [userRegisterDataItem_ setClassName:[notificationDataItem_ getClassName]];
+    [userRegisterDataItem_ setUserName:uniqueNameKey];
+    [userRegisterDataItem_ setUserUniqueKey:uniqueNameKey];
+    NSDictionary *parameters = [userRegisterDataItem_ getDataItemEelements];
+    
+    NSString* urlString = [URLManager urlString:URLTypeQueryRegisterStatus];
+    [self request:RequestTypeGet urlString:urlString parameters:parameters];
+}
+
+
+- (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject
+{
+    [super onSuccess:operation responseObject:responseObject];
+    NSString* resultString = [responseObject objectForKey:@"result"];
+    BOOL bDelete = NO;
+    if ([resultString rangeOfString:@"delete"].length > 0)
+    {
+        bDelete = YES;
+    }
+    NSString* key = [notificationDataItem_ getUniqueKey];
+    NSString* oneClassURLString = [URLManager urlString:URLTypeOneClass variableKey:key];
+    NSString* classPostURLString = [URLManager urlString:URLTypeClassPost];
+    NSString* candidate = [[[operation response] URL] absoluteString];
+    if (bDelete)
+    {
+        NSLog(@"delete");
+    }
+    else if ([oneClassURLString isEqualToString:candidate])
+    {
+        [notificationDataItem_ setDataItemEelements:responseObject];
+        [self updateEditType];
+        [self updateUIFromData];
+    }
+    else if ([[URLManager urlString:URLTypeOneClassUserCount variableKey:key] isEqualToString:candidate])
+    {
+        NSString* registeredCount = [responseObject objectForKey:[NotificationDataItem getKey:ElementType_ClassRegisteredCount ]];
+        NSString* maxCount = [responseObject objectForKey:[NotificationDataItem getKey:ElementType_ClassStudent ]];
+        int leftCount = (int)(maxCount.integerValue - registeredCount.integerValue);
+        NSString* registeredInformation = [NSString stringWithFormat:@"registered:%@, left:%i",registeredCount, leftCount];
+        registerCountLabel_.text = registeredInformation;
+        if  (editType_ == EditType_View)
+        {
+            registerButton_.hidden = leftCount <= 0;
+        }
+        else
+        {
+            registerButton_.hidden = YES;
+        }
+    }
+    else if ([classPostURLString isEqualToString:candidate])
+    {
         [self.navigationController popViewControllerAnimated:YES];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error: %@", error);
-    }];
+    }
+    else if ([[URLManager urlString:URLTypeUserRegister] isEqualToString:candidate])
+    {
+        //[self.navigationController popViewControllerAnimated:YES];
+    }
+    else if ([URLManager isURLString:URLTypeQueryRegisterStatus candidate:candidate])
+    {
+        NSString* uniqueNameKey = [MeViewData singleton].userUniqueName;
+        NSString* registerResult = [responseObject objectForKey:uniqueNameKey];
+        if (registerResult != nil && [registerResult compare:@"YES"] == NSOrderedSame)
+        {
+            bCurrentUserRegistered_ = YES;
+            [registerButton_ setTitle:@"UnRegister" forState:UIControlStateNormal];
+        }
+        else
+        {
+            bCurrentUserRegistered_ = NO;
+            [registerButton_ setTitle:@"Register" forState:UIControlStateNormal];
+        }
+    }
+    else if ([[URLManager urlString:URLTypeUserUnregister] isEqualToString:candidate])
+    {
+        // do nothing
+    }
+    
+}
+
+
+
+- (void)onFail:(AFHTTPRequestOperation *)operation error:(NSError*)error
+{
+    [super onFail:operation error:error];
+    // Do nothing
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
+    bCurrentUserRegistered_ = YES;
     if (EditType_View == editType_
         || EditType_Editable == editType_)
     {
-        dispatch_async(BackGroundQueue, ^{
-            
-            NSString* key = [notificationDataItem_ getUniqueKey];
-            NSLog(@"%@", key);
-            NSString* urlString = [NSString stringWithFormat:@"%@%@", OneClassURLBase, key];
-            NSLog(@"%@", urlString);
-            NSData* data = [NSData dataWithContentsOfURL:[NSURL URLWithString: urlString]];
-            if (data == nil)
-            {
-                NSLog(@"data is nil");
-                return;
-            }
-            [self performSelectorOnMainThread:@selector(fetchedOneClass:) withObject:data waitUntilDone:YES];
-        });
+        [self getOneClass];
     }
-    
-    [self updateEditType];
-    [self updateUIFromData];
-}
 
-- (void)fetchedOneClass:(NSData *)responseData
-{
-    if (responseData == nil)
+    if (EditType_View == editType_)
     {
-        return;
+        [self queryRegisterStatus];
     }
     
-    //parse out the json data
-    NSError* error;
-    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:responseData //1
-                                                         options:kNilOptions
-                                                           error:&error];
-    NSLog(@"dictionary data %@",json);
-    
-    NSMutableDictionary* mutableDictionary = [[NSMutableDictionary alloc] init];
-    [mutableDictionary setDictionary:json];
-    [notificationDataItem_ setDataItemEelements:mutableDictionary];
+    [self getOneClassUserCount];
     
     [self updateEditType];
     [self updateUIFromData];
 }
-
 
 - (void)didReceiveMemoryWarning
 {
@@ -189,50 +312,35 @@
 
 - (IBAction)onDelete:(id)sender
 {
-    [self postWithDeleteMessage];
-    [self.navigationController popViewControllerAnimated:YES];
+    [self deleteOneClass];
+    
+    //[self.navigationController popViewControllerAnimated:YES];
 }
 
-
-- (void)postWithDeleteMessage
-{
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    
-    NSString* uniqueKey = [notificationDataItem_ getUniqueKey];
-    
-    NSString* urlString = [NSString stringWithFormat:@"%@%@%@", SERVER_IP, URL_PART_DELETE_ONE_CLASS, uniqueKey];
-    [manager POST:urlString parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"JSON: %@", responseObject);
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error: %@", error);
-    }];
-}
 
 - (IBAction)onRegister:(id)sender
 {
-    [self postWithRegisterMessage];
+    if (bCurrentUserRegistered_)
+    {
+        [self unregisterOneUser];
+    }
+    else
+    {
+        [self registerOneUser];
+    }
+    
     [self.navigationController popViewControllerAnimated:YES];
 }
 
-- (void)postWithRegisterMessage
+- (IBAction)onStudentDetail:(id)sender
 {
-    
-    NSString* uniqueNameKey = [MeViewData singleton].userUniqueName;
-    [userRegisterDataItem_ setUniqueKey:[notificationDataItem_ getUniqueKey]];
-    [userRegisterDataItem_ setClassName:[notificationDataItem_ getClassName]];
-    
-    [userRegisterDataItem_ setUserName:uniqueNameKey];
-    [userRegisterDataItem_ setUserUniqueKey:uniqueNameKey];
-    
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    NSDictionary *parameters = [userRegisterDataItem_ getDataItemEelements];
-    NSString* urlString = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_PART_REGISTER_ONE_CLASS];
-    [manager POST:urlString parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"JSON: %@", responseObject);
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error: %@", error);
-    }];
+    [OneClassReigsterStudentData singleton].classUniqueID = [notificationDataItem_ getUniqueKey];
+    NSString* title = [notificationDataItem_ getClassName];
+    title = [title stringByAppendingString:@" registered users"];
+    oneClassRegisterStudentViewController_.title = title;
+    [self.navigationController pushViewController:oneClassRegisterStudentViewController_ animated:YES];
 }
+
 
 - (void)setEditable:(BOOL)bEditable
 {
@@ -250,6 +358,8 @@
     classTeachTextField_.text = [notificationDataItem_ getClassTeacher];
     classDescriptionTextField_.text = [notificationDataItem_ getClassDescription];
     classMaxStudentNumberTextField_.text = [notificationDataItem_ getClassMaxStudent];
+    
+    self.title = [notificationDataItem_ getClassName];
 }
 
 

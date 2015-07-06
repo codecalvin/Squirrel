@@ -7,7 +7,7 @@
 //
 
 #import "GeneralTabBarViewController.h"
-
+#import "Define.h"
 
 @implementation GeneralTabBarViewController
 
@@ -113,6 +113,7 @@
     }
     
     [self setTabBarItem:tabBarItem1
+                  title:tabBarItem1.title
           selectedImage:[self getSelectedImage:index]
         unselectedImage:[self getUnselectedImage:index]];
 }
@@ -129,6 +130,7 @@
     }
     
     [self setTabBarItem:tabBarItem1
+                  title:tabBarItem1.title
           selectedImage:[self getSelectedImage:index]
         unselectedImage:[self getUnselectedImage:index]];
 }
@@ -140,12 +142,41 @@
 
 - (NSString*)getSelectedImage:(int)index
 {
-    return nil;
+    //  to do
+    return [self getUnselectedImage:index];
 }
 
 - (NSString*)getUnselectedImage:(int)index
 {
-    return nil;
+    NSString* imageName = nil;
+    switch (index)
+    {
+        case TabItemIndex1:
+        {
+            imageName = TAB_BAR_UNSELECTED_IMAGE_1;
+        }
+            break;
+        case TabItemIndex2:
+        {
+            imageName = TAB_BAR_UNSELECTED_IMAGE_2;
+        }
+            break;
+        case TabItemIndex3:
+        {
+            imageName = TAB_BAR_UNSELECTED_IMAGE_3;
+        }
+            break;
+        case TabItemIndex4:
+        {
+            imageName = TAB_BAR_UNSELECTED_IMAGE_4;
+        }
+            break;
+            
+        default:
+            break;
+    }
+    //imageName = nil;
+    return imageName;
 }
 
 - (NSString*)getTitle:(int)index
@@ -155,7 +186,8 @@
 
 - (void)setBackgroundImage
 {
-    
+    UIImage* tabBarBackground = [UIImage imageNamed:TAB_BAR_BACKGROUND];
+    [[UITabBar appearance] setBackgroundImage:tabBarBackground];
 }
 
 - (void)setTabItemTextColor
@@ -163,10 +195,20 @@
 }
 
 - (void)setTabBarItem:(UITabBarItem*)tabBarItem
+                title:(NSString*)title
         selectedImage:(NSString*)selectedName
       unselectedImage:(NSString*)unselectedName
 {
+
+    //NSString* pureNameSelected = [selectedName stringByDeletingPathExtension];
+    //NSString *fullPathSelected=[[NSBundle mainBundle] pathForResource:pureNameSelected ofType:@"png" inDirectory:@"Resources/Image"];
+   // NSString *fullPathSelected=[[NSBundle mainBundle] pathForResource:pureNameSelected ofType:@"png"];
     
+    UIImage * imageSelected = [UIImage imageNamed:selectedName];
+    UIImage * imageUnSelected = [UIImage imageNamed:unselectedName];
+    [tabBarItem initWithTitle:title
+                        image:imageUnSelected
+                selectedImage:imageSelected];
 }
 
 - (BOOL)customizeTabBarName

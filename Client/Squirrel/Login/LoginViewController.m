@@ -9,7 +9,7 @@
 #import "LoginViewController.h"
 #import "TabBarViewController/DictionaryTabBarViewController.h"
 #import "DataModel/MeViewData.h"
-
+#import "Define.h"
 @interface LoginViewController ()
 {
     IBOutlet UILabel* errorInformation_;
@@ -25,7 +25,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
+    
+    [self.view setTag:LIGIN_VIEW_TAG];
     errorInformation_.text = @"";
 }
 
@@ -99,9 +100,12 @@
 - (void)loginViewSwitch
 {
     UIView* window = [self.view superview];
-    [self.view removeFromSuperview];
+    //[self.view removeFromSuperview];
+    self.view.hidden = YES;
     
     [window addSubview:[DictionaryTabBarViewController singleton].view];
+    
+    passwordTextField_.text = @"";
 }
 
 @end

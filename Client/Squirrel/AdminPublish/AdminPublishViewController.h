@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AFHttpViewController/AFHttpViewController.h"
 
-@interface AdminPublishViewController : UIViewController<UITableViewDelegate, UITableViewDataSource>
+@interface AdminPublishViewController : AFHttpViewController<UITableViewDelegate, UITableViewDataSource>
 
 @end

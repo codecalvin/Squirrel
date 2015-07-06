@@ -29,16 +29,35 @@
                                                                               style:UIBarButtonItemStyleDone
                                                                              target:self
                                                                              action:@selector(onAdd)];
+    
+    self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
 
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [notificationTableView_ reloadData];
-    dispatch_async(BackGroundQueue, ^{
-        NSData* data = [NSData dataWithContentsOfURL: ClassListURL];
-        [self performSelectorOnMainThread:@selector(fetchedData:) withObject:data waitUntilDone:YES];
-    });
+    
+    NSString* classListURLString = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_PART_CLASS_LIST];
+    [self request:RequestTypeGet urlString:classListURLString parameters:nil];
+}
+
+- (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject
+{
+    [super onSuccess:operation responseObject:responseObject];
+    
+    [[UserViewData singleton] reset];
+    [[UserViewData singleton] setJsonDictionaryData:responseObject];
+    
+    [notificationTableView_ reloadData];
+}
+
+- (void)onFail:(AFHTTPRequestOperation *)operation error:(NSError*)error
+{
+    [super onFail:operation error:error];
+    
+    [[UserViewData singleton] reset];    
+    [notificationTableView_ reloadData];
 }
 
 - (void)fetchedData:(NSData *)responseData {
@@ -54,10 +73,7 @@
                                                            error:&error];
     NSLog(@"dictionary data %@",json);
     
-    [[UserViewData singleton] reset];
-    [[UserViewData singleton] setJsonDictionaryData:json];
     
-    [notificationTableView_ reloadData];
 }
 
 
