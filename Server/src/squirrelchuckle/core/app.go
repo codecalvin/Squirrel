@@ -12,11 +12,18 @@ var (
 	SquirrelApp *Squirrel
 )
 
+var CloseChan chan bool
 func init() {
+	CloseChan = make(chan bool)
 	SquirrelApp = NewApp()
 	if err := SquirrelApp.Initialize(); err == nil {
 		SquirrelApp.Fatal("SquirrelApp initialize failed. Fatal: %v", err)
 	}
+}
+
+func Run() {
+	defer CloseApp()
+	<-CloseChan
 }
 
 func NewApp() *Squirrel {
@@ -26,6 +33,7 @@ func NewApp() *Squirrel {
 func CloseApp() {
 	if SquirrelApp != nil {
 		SquirrelApp.UnInitialize()
+		SquirrelApp = nil
 	}
 }
 

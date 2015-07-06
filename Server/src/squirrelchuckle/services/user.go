@@ -37,7 +37,6 @@ type UserInfo struct {
 	dirty bool
 }
 
-
 func (this *UserService) Alive() bool {
 	return this.alive
 }

@@ -7,9 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
 
-	"squirrelchuckle/services"
 	"squirrelchuckle/core"
-	"golang.org/x/tools/godoc/redirect"
 )
 
 type ClassController struct {
@@ -19,10 +17,10 @@ type ClassController struct {
 var database *core.Database
 func (this *ClassController) Get() {
 	if database == nil {
-		if database = core.SquirrelApp.GetServiceByName("Database"); database == nil || database.Alive() {
-			database = nil
-			// Todo
-			redirect.Handler("Service down")
+		if service := core.SquirrelApp.GetServiceByName("Database"); service == nil || !service.Alive() {
+			this.Ctx.Redirect(300, "/")
+		} else {
+			database = service.(*core.Database)
 		}
 	}
 
@@ -44,11 +42,9 @@ func (this *ClassController) Post() {
 	c := database.MSession.DB("squirrel").C("test_user")
 
 	p := ProfileInfo{UserName:name, UserId:id}
-	cinfo, err := c.Upsert(bson.M{"userid": id}, p)
-
-	if err != nil{
+	if cInfo, err := c.Upsert(bson.M{"userid": id}, p); err != nil {
 		this.Ctx.Output.Body([]byte(err.Error()))
+	} else {
+		this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cInfo, name, id)))
 	}
-
-	this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cinfo, name, id)))
 }

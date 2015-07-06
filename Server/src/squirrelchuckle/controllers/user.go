@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
 	
+	"squirrelchuckle/core"
 	"squirrelchuckle/services"
 )
 
@@ -21,7 +22,7 @@ type ProfileInfo struct {
 
 func (this *UsersController) Get() {
 	var result [] ProfileInfo
-	c := services.DatabaseInstance().MSession.DB("squirrel").C("user")
+	c := core.Squirrel.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 	iterator := q.Iter()
 	print(iterator)

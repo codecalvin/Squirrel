@@ -2,6 +2,7 @@ package controllers
 import (
 	"github.com/astaxie/beego"
 
+	"squirrelchuckle/core"
 	"squirrelchuckle/services"
 )
 
@@ -14,7 +15,7 @@ var tapnService *services.ApplePushService
 
 func (this *APNPushTestController) Get() {
 	if apnService == nil || !apnService.Alive() {
-		tapnService, _ = services.GetManager().GetServiceByName("APN_Service").(*services.ApplePushService)
+		tapnService, _ = core.SquirrelApp.GetServiceByName("APN_Service").(*services.ApplePushService)
 	}
 
 	result := tapnService.TestAPN()

@@ -4,9 +4,10 @@ import (
 	"github.com/astaxie/beego"
 
 	"squirrelchuckle/core"
+	_ "squirrelchuckle/routers"
 )
 
 func main() {
-	defer core.CloseApp()
+	core.Run()
 	beego.Run()
 }
