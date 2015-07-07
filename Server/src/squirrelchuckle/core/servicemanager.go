@@ -17,6 +17,7 @@ loop:
 		case spawn := <-this.spawnChan:
 			name := spawn.Name()
 			if err := spawn.Initialize(); err == nil {
+				println("Initialize service %v", name)
 				this.Lock()
 				this.services[name] = spawn
 				this.Unlock()
@@ -67,7 +68,7 @@ func (this *ServiceManager) UnInitialize() {
 func (this *ServiceManager) AddPostInitHandler(service string, function PostInitFunc) {
 	initHandlers := this.postInitHandler[service]
 	if initHandlers == nil {
-		initHandlers = make([]PostInitFunc, 5)
+		initHandlers = make([]PostInitFunc, 0, 5)
 		this.postInitHandler[service] = initHandlers
 	}
 

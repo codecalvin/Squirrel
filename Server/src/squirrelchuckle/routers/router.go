@@ -21,8 +21,6 @@ func init() {
 	router("/api", "api_page", &controllers.ApiController{})
 	router("/api/admin", "admin_page", &controllers.AdminController{})
 	
-	router("/apns/test", "apns_tester", &controllers.APNPushTestController{})
-	
 	router("/ws", "websocket_example:Join", &controllers.WebSocketController{})
 	router("/ws/join", "websocket_example:Join", &controllers.WebSocketController{}, "get:Join")
 
@@ -31,6 +29,8 @@ func init() {
 
 	router("/user", "current_user", &controllers.UserController{})
 
+	router("/device", "device_token", &controllers.DeviceTokenController{})
+	
 	router("/classes", "classes", &controllers.ClassController{})
 	router("/classes/:id", "class_url", &controllers.ClassController{})
 }
@@ -38,5 +38,6 @@ func init() {
 func registerServices() {
 	core.SquirrelApp.RegisterService(&services.ApplePushService{})
 	core.SquirrelApp.RegisterService(&services.DeviceTokenService{})
+	core.SquirrelApp.RegisterService(&services.UserService{})
 	
 }

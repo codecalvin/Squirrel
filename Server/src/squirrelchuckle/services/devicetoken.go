@@ -24,26 +24,25 @@ import (
 type DeviceToken struct {
 	pushUnreachableCount int
 	connReachableTick int
-	userId core.DbKeyType
+	userId core.DbKeyType `database user id`
+	deviceTokenId [8]byte `ios device token`
 }
 
 type DeviceTokenService struct {
-	alive bool
-	deviceTokens map[int32]*DeviceToken
-	changedTokens map[int32]*DeviceToken `dirty tokens, false for stall entries, true for new entries`
-	sync.Mutex
-	currentTick int
-	staleTick int
+	deviceTokens map[uint32]*DeviceToken
+	changedTokens map[uint32]*DeviceToken `dirty tokens, false for stall entries, true for new entries`
 
-	staleTokens []int32
+	currentTick,staleTick int
+	staleTokens []uint32
+	alive bool
+
 	ticker *time.Ticker
 	stopChan chan bool
+	sync.Mutex
 }
-
 
 var defaultPushUnreachableTolerance, defaultConnUnreachableTolerance int = 20, 7 * 24
 var pushUnreachableTolerance, connUnreachableTolerance int
-
 
 func (this *DeviceTokenService) Alive() bool {
 	return this.alive
@@ -61,8 +60,8 @@ func (this *DeviceTokenService) Initialize() (error) {
 		return nil
 	}
 
-	this.changedTokens = make(map[int32]*DeviceToken)
-	this.staleTokens = make([]int32, 10000)
+	this.changedTokens = make(map[uint32]*DeviceToken)
+	this.staleTokens = make([]uint32, 0, 10000)
 	this.stopChan = make(chan bool)
 	
 	var err error
@@ -78,18 +77,18 @@ func (this *DeviceTokenService) Initialize() (error) {
 	q := c.Find(nil)
 	iterator := q.Iter()
 
-	var result []struct { token int32 }
+	var result []struct { token uint32 }
 	iterator.All(&result)
 	iterator.Close()
 
-	this.deviceTokens = make(map[int32]*DeviceToken, len(result))
+	this.deviceTokens = make(map[uint32]*DeviceToken, len(result))
 
 	for _, token := range result {
 		this.deviceTokens[token.token] = new(DeviceToken)
 	}
 
 	// ticker
-	this.ticker = time.NewTicker(time.Second)
+	this.ticker = time.NewTicker(time.Millisecond * 100)
 	go func () {
 loop:
 		for {
@@ -136,10 +135,9 @@ func (this *DeviceTokenService) flush() {
 	methods
  ****************************************************/
 
-func (this *DeviceTokenService) Add(tokens []int32) {
+func (this *DeviceTokenService) Add(tokens []DeviceToken) {
 	for _, token := range tokens {
-		e := this.deviceTokens[token]
-		if e != nil {
+		if e := this.deviceTokens[token]; e != nil {
 			e.connReachableTick = this.currentTick
 			e.pushUnreachableCount = 0
 		} else {
@@ -148,26 +146,23 @@ func (this *DeviceTokenService) Add(tokens []int32) {
 	}
 }
 
-func (this *DeviceTokenService) Touch (tokens []int32) {
+func (this *DeviceTokenService) Touch (tokens []uint32) {
 	for _, token := range tokens {
-		e := this.deviceTokens[token]
-		if e != nil {
+		if e := this.deviceTokens[token]; e != nil {
 			e.pushUnreachableCount = 0
 		}
 	}
 }
 
-func (this *DeviceTokenService) Disconnect (tokens [] int32) {
+func (this *DeviceTokenService) Disconnect (tokens []uint32) {
 	for _, token := range tokens {
-		e := this.deviceTokens[token]
-		if e != nil {
+		if e := this.deviceTokens[token]; e != nil {
 			e.connReachableTick = this.currentTick
 		}
 	}
 }
 
 func (this *DeviceTokenService) Stale() {
-
 	// TODO: tick overflow
 	for k, v := range this.deviceTokens {
 		if v.pushUnreachableCount >= pushUnreachableTolerance && v.connReachableTick >= this.staleTick {
@@ -180,4 +175,14 @@ func (this *DeviceTokenService) Stale() {
 	}
 
 	this.staleTokens = this.staleTokens[0:0]
+}
+
+func (this *DeviceTokenService) TestAPN() {
+	if service, ok := core.SquirrelApp.GetServiceByName("ApplePushService").(*ApplePushService); ok {
+		tokens := make([]*DeviceToken, 0, 100)
+		for _, v := range this.deviceTokens {
+			tokens = append(tokens, &v)
+		}
+		service.TestAPN(tokens)
+	}
 }

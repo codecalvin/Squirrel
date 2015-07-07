@@ -8,7 +8,7 @@ import (
 type UserService struct {
 	alive bool
 
-	users map[string]UserInfo `email to user`
+	Users map[string]UserInfo `email to user`
 
 	sync.Mutex
 }
@@ -52,12 +52,12 @@ func (this *UserService) Initialize() error {
 		return nil
 	}
 
-	this.users = make(map[string]UserInfo)
+	this.Users = make(map[string]UserInfo)
 
 	c := core.SquirrelApp.MSession.DB("squirrel").C("user")
 	q := c.Find(nil)
 
-	userInfo := make([]UserInfo, core.DbQueryLimit)
+	userInfo := make([]UserInfo, 0, core.DbQueryLimit)
 
 	for {
 		q.Limit(core.DbQueryLimit).All(&userInfo)
@@ -65,7 +65,7 @@ func (this *UserService) Initialize() error {
 			break
 		}
 		for _, user := range userInfo {
-			this.users[user.Email] = user
+			this.Users[user.Email] = user
 		}
 		q.Skip(core.DbQueryLimit)
 	}
