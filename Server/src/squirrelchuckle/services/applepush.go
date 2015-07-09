@@ -132,7 +132,6 @@ func (this *ApplePushService) TestAPN(tokens []DeviceToken) error {
 		testBuffer := new(bytes.Buffer)
 		binary.Write(testBuffer, binary.BigEndian, token)
 
-		println("Notif tokens ", token, testBuffer.Bytes())
 		//write payload
 		binary.Write(itemByteBuffer, binary.BigEndian, uint8(2))
 		binary.Write(itemByteBuffer, binary.BigEndian, uint16(len(payloadBytes)))

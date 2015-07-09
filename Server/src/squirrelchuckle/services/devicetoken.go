@@ -136,14 +136,14 @@ func (this *DeviceTokenService) flush() {
  ****************************************************/
 
 func (this *DeviceTokenService) Add(tokens []DeviceToken) {
-	for _, token := range tokens {
-		if e := this.deviceTokens[token]; e != nil {
-			e.connReachableTick = this.currentTick
-			e.pushUnreachableCount = 0
-		} else {
-			this.deviceTokens[token] = new (DeviceToken)
-		}
-	}
+//	for _, token := range tokens {
+//		if e := this.deviceTokens[token]; e != nil {
+	//		e.connReachableTick = this.currentTick
+		//	e.pushUnreachableCount = 0
+//		} else {
+			//this.deviceTokens[token] = new (DeviceToken)
+//		}
+//	}
 }
 
 func (this *DeviceTokenService) Touch (tokens []uint32) {
@@ -178,11 +178,6 @@ func (this *DeviceTokenService) Stale() {
 }
 
 func (this *DeviceTokenService) TestAPN() {
-	if service, ok := core.SquirrelApp.GetServiceByName("ApplePushService").(*ApplePushService); ok {
-		tokens := make([]*DeviceToken, 0, 100)
-		for _, v := range this.deviceTokens {
-			tokens = append(tokens, &v)
-		}
-		service.TestAPN(tokens)
+	if _, ok := core.SquirrelApp.GetServiceByName("ApplePushService").(*ApplePushService); ok {
 	}
 }

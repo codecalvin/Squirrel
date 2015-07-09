@@ -5,7 +5,7 @@ import (
 	"squirrelchuckle/core"
 	"squirrelchuckle/services"
 	"encoding/hex"
-	"encoding/binary"
+//	"encoding/binary"
 )
 
 
@@ -71,9 +71,9 @@ func (this *DeviceTokenController) Post() {
 	email := input.Get("email")
 	deviceToken := input.Get("device_token")
 	if _, ok := userService.Users[email]; !ok {
-		if deviceTokenId, err := hex.DecodeString(deviceToken); err == nil {
+		if _, err := hex.DecodeString(deviceToken); err == nil {
 			//user.Devices = append(user.Devices, services.Device{ UserID : deviceTokenId, })
-			deviceTokenService.Add([]uint32{ binary.BigEndian.Uint32(deviceTokenId) })
+//			deviceTokenService.Add([]uint32{ binary.BigEndian.Uint32(deviceTokenId) })
 		} else {
 			this.Ctx.Output.Body([]byte(err.Error()))
 		}
