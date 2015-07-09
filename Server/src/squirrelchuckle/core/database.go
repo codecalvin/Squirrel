@@ -2,11 +2,23 @@ package core
 
 import (
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"sync"
 )
 
+type DbDefKey string
+
 type Database struct {
-	MSession *mgo.Session
+	*mgo.Session
+	counterCol *mgo.Collection
+	sync.Mutex
+
 	alive bool
+}
+
+type Counter struct {
+	Field string	`bson:"field"`
+	Count uint		`bson:"count"`
 }
 
 func (this *Database) Alive() bool {
@@ -23,8 +35,9 @@ func (this *Database) Initialize() error {
 	}
 	
 	var err error
-	if this.MSession, err = mgo.Dial(SquirrelApp.AppDatabaseAddr); err == nil {
-		this. alive = true
+	if this.Session, err = mgo.Dial(SquirrelApp.AppDatabaseAddr); err == nil {
+		this.counterCol = this.DB("squirrel").C("counter")
+		this.alive = true
 	} else {
 		SquirrelApp.Critical("Database Initialize failed. Error: %v", err)
 	}
@@ -34,8 +47,23 @@ func (this *Database) Initialize() error {
 
 func (this *Database) UnInitialize() {
 	if this.alive {
-		this.MSession.Close()
+		this.Close()
 	}
 
 	this.alive = false
+}
+
+func (this *Database) UniqueId(field string) uint {
+	change := mgo.Change{
+		Update: bson.M{"$inc": bson.M{"count" : 1} },
+		ReturnNew: true,
+		Upsert: true,
+	}
+
+	var result Counter
+	_, err := this.counterCol.Find(bson.M{ "field": field }).Apply(change, &result)
+	if err != nil {
+		SquirrelApp.Error(err.Error())
+	}
+	return result.Count
 }

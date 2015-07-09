@@ -7,20 +7,25 @@ type ServiceInterface interface {
 	UnInitialize()
 }
 
-type DbKeyType int
 
 const DbQueryLimit = 10000
 
-type DeviceID uint8
+type DeviceID uint
+type DeviceKind uint8
+type PrivilegeLevel uint16
 
 type PostInitFunc func ()
 
 const (
-	NIL_DBKey DbKeyType = iota // nil db key
-
-	IPHONE DeviceID = iota
-	IPAD
+	INVALID DeviceKind = iota
 	IOS = 10 + iota
 	ANDROID
-	WEB
+)
+
+const (
+	Delete PrivilegeLevel = iota
+	ANONYMOUS
+	Normal
+	Admin
+	Super
 )

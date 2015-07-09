@@ -3,13 +3,16 @@ import (
 	"sync"
 	
 	"squirrelchuckle/core"
+	"gopkg.in/mgo.v2"
+	"errors"
 )
 
 type UserService struct {
 	alive bool
 
-	Users map[string]UserInfo `email to user`
+	Users map[string]User `email to user`
 
+	*mgo.Collection
 	sync.Mutex
 }
 
@@ -17,22 +20,22 @@ type Avatar struct {
 
 }
 
-type Device struct {
-	core.DeviceID
-	UserID core.DbKeyType
-}
-
 type Subscribe struct {
 
 }
 
 type UserInfo struct {
-	Name string
-	NickName string
-	Email string
+	Department string	`json:"department" bson:"department"`
 	Avatar
-	Devices []Device
-	Subscribes []Subscribe
+}
+
+type User struct {
+	ID 	  		core.DbDefKey   `json:"id" bson:"_id,omitempty"`
+	Email 		string			`json:"email" bson:"email"`
+	Name 		string  		`json:"name" bson:"name"`
+	UserInfo
+	Devices 	[]DeviceToken
+	core.PrivilegeLevel			`json:"privilege" bson:"privilege"`
 
 	dirty bool
 }
@@ -52,12 +55,12 @@ func (this *UserService) Initialize() error {
 		return nil
 	}
 
-	this.Users = make(map[string]UserInfo)
+	this.Users = make(map[string]User)
 
-	c := core.SquirrelApp.MSession.DB("squirrel").C("user")
-	q := c.Find(nil)
+	this.Collection = core.SquirrelApp.DB("squirrel").C("user")
+	q := this.Find(nil)
 
-	userInfo := make([]UserInfo, 0, core.DbQueryLimit)
+	userInfo := make([]User, 0, core.DbQueryLimit)
 
 	for {
 		q.Limit(core.DbQueryLimit).All(&userInfo)
@@ -81,5 +84,61 @@ func (this *UserService) UnInitialize() {
 		return
 	}
 
+	this.Collection = nil
 	this.alive = false
+}
+
+func (this *UserService) validate(user *User) bool {
+	if _, ok := this.Users[user.Email]; ok {
+		return false
+	}
+
+	return true
+}
+
+func (this *UserService) BulkAdd(users []*User) error {
+	length := len(users)
+	switch length {
+	case 1:
+		return this.Add(users[0])
+	case 0:
+		return nil
+	}
+
+	valid := make([]*User, length)
+	var i int
+	for _, user := range users {
+		if this.validate(user) {
+			valid[i] = makeUser(user)
+			i += 1
+		}
+	}
+
+	valid = valid[:i]
+	if i != len(users) {
+		core.SquirrelApp.Error("Some users not added %v", length - i)
+	}
+
+	bulk := this.Bulk()
+	bulk.Unordered()
+	bulk.Insert(valid)
+	_, err := bulk.Run()
+
+	return err
+}
+
+func makeUser(user *User) *User {
+	user.PrivilegeLevel = core.Normal
+	if user.Devices == nil {
+		user.Devices = make([]DeviceToken, 1)
+	}
+	return user
+}
+
+func (this *UserService) Add(user *User) error {
+	if !this.validate(user) {
+		return errors.New("invalid user")
+	}
+	
+	return this.Insert(makeUser(user))
 }

@@ -5,6 +5,7 @@ import (
 
 	"time"
 	"squirrelchuckle/core"
+	"gopkg.in/mgo.v2"
 )
 
 /*
@@ -22,19 +23,24 @@ import (
  */
 
 type DeviceToken struct {
-	pushUnreachableCount int
-	connReachableTick int
-	userId core.DbKeyType `database user id`
-	deviceTokenId [8]byte `ios device token`
+	pushUnreachableTick int
+	connReachableTick 	int
+
+	core.DeviceID						`json:"device_id" bson:"device_id"`
+	UserID 				core.DbDefKey 	`json:"user_id" bson:"user_id"`
+	DeviceTokenId 		[8]byte 		`json:"id" bson:"_id"`
 }
 
 type DeviceTokenService struct {
 	deviceTokens map[uint32]*DeviceToken
 	changedTokens map[uint32]*DeviceToken `dirty tokens, false for stall entries, true for new entries`
 
+	*mgo.Collection
 	currentTick,staleTick int
 	staleTokens []uint32
 	alive bool
+
+	uniqueId uint
 
 	ticker *time.Ticker
 	stopChan chan bool
@@ -73,8 +79,10 @@ func (this *DeviceTokenService) Initialize() (error) {
 		connUnreachableTolerance = defaultConnUnreachableTolerance
 	}
 
-	c := core.SquirrelApp.MSession.DB("squirrel").C("device_token")
-	q := c.Find(nil)
+	// setup unique id
+	this.uniqueId = core.SquirrelApp.UniqueId("device_token")
+	this.Collection = core.SquirrelApp.DB("squirrel").C("device_token")
+	q := this.Find(nil)
 	iterator := q.Iter()
 
 	var result []struct { token uint32 }
@@ -135,21 +143,53 @@ func (this *DeviceTokenService) flush() {
 	methods
  ****************************************************/
 
-func (this *DeviceTokenService) Add(tokens []DeviceToken) {
-//	for _, token := range tokens {
-//		if e := this.deviceTokens[token]; e != nil {
-	//		e.connReachableTick = this.currentTick
-		//	e.pushUnreachableCount = 0
-//		} else {
-			//this.deviceTokens[token] = new (DeviceToken)
-//		}
-//	}
+func (this *DeviceTokenService) getUniqueId(inc uint) uint {
+	this.Lock()
+	defer this.Unlock()
+	curId := this.uniqueId
+	this.uniqueId += inc
+	return curId
+}
+
+func (this *DeviceTokenService) Add(token *DeviceToken) error {
+	token.connReachableTick = this.currentTick
+	token.DeviceID = core.DeviceID(this.getUniqueId(1))
+	return this.Insert(token)
+}
+
+func (this *DeviceTokenService) BulkAdd(tokens []*DeviceToken) error {
+	length := len(tokens)
+
+	switch length {
+	case 1:
+		return this.Add(tokens[0])
+	case 0:
+		return nil
+	}
+
+	curId := this.getUniqueId(uint(length))
+	bulk := this.Bulk()
+	bulk.Unordered()
+
+	// update token
+	for _, token := range tokens {
+		token.connReachableTick = this.currentTick
+		token.DeviceID = core.DeviceID(curId)
+		curId += 1
+	}
+	bulk.Insert(tokens)
+
+	var err error
+	if _, err = bulk.Run(); err != nil {
+		core.SquirrelApp.Error(err.Error())
+	}
+	return err
 }
 
 func (this *DeviceTokenService) Touch (tokens []uint32) {
 	for _, token := range tokens {
 		if e := this.deviceTokens[token]; e != nil {
-			e.pushUnreachableCount = 0
+			e.pushUnreachableTick = 0
 		}
 	}
 }
@@ -165,7 +205,7 @@ func (this *DeviceTokenService) Disconnect (tokens []uint32) {
 func (this *DeviceTokenService) Stale() {
 	// TODO: tick overflow
 	for k, v := range this.deviceTokens {
-		if v.pushUnreachableCount >= pushUnreachableTolerance && v.connReachableTick >= this.staleTick {
+		if v.pushUnreachableTick >= pushUnreachableTolerance && v.connReachableTick >= this.staleTick {
 			this.staleTokens = append(this.staleTokens, k)
 		}
 	}

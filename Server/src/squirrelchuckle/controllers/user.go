@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
 	
-	"squirrelchuckle/core"
+	"squirrelchuckle/services"
 )
 
 type UsersController struct {
@@ -19,10 +19,11 @@ type ProfileInfo struct {
 	UserId   string
 }
 
+var userService *services.UserService
+
 func (this *UsersController) Get() {
 	var result [] ProfileInfo
-	c := core.SquirrelApp.MSession.DB("squirrel").C("user")
-	q := c.Find(nil)
+	q := userService.Find(nil)
 	iterator := q.Iter()
 	_ = iterator.All(&result)
 
@@ -35,10 +36,8 @@ func (this *UsersController) Post() {
 	name := input.Get("name")
 	id := input.Get("id")
 
-	c := core.SquirrelApp.MSession.DB("squirrel").C("user")
-
 	p := ProfileInfo{UserName:name, UserId:id}
-	if cInfo, err := c.Upsert(bson.M{"userid": id}, p); err != nil {
+	if cInfo, err := userService.Upsert(bson.M{"userid": id}, p); err != nil {
 		this.Ctx.Output.Body([]byte(err.Error()))
 	} else {
 		this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cInfo, name, id)))

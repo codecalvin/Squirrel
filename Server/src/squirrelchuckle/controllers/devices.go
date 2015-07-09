@@ -14,7 +14,6 @@ type DeviceTokenController struct {
 }
 
 var apnService *services.ApplePushService
-var userService *services.UserService
 var deviceTokenService *services.DeviceTokenService
 
 func initController() bool {
