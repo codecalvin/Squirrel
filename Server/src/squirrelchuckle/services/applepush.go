@@ -87,7 +87,7 @@ func (this *APNService) Initialize() (error) {
 		panic("cannot reach APNs")
 		return err
 	}
-
+	
 	this.alive = true
 	return nil
 }
@@ -100,8 +100,8 @@ func (this *APNService) TestAPN() error {
 	}
 
 	payload := simpleAps {
-		Badge:1,
-		Alert:"hello my apple",
+		Badge:16,
+		Alert:"Classes: c-- on board",
 		Sound:"default",
 	}
 

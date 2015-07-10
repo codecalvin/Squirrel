@@ -35,7 +35,7 @@ func (this *ServiceManager) Initialize() {
 	for k := range instance.Services {
 		instance.Services[k].Initialize()
 		initHandlers := this.postInitHandler[k]
-		if initHandlers == nil {
+		if initHandlers != nil {
 			for _, v := range initHandlers {
 				v()
 			}
