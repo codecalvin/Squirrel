@@ -27,8 +27,7 @@
 {
     [self addSubViewControllerInstance:[[UserRegisterNotificationViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE1];
     [self addSubViewControllerInstance:[[AdminPublishViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE2];
-    [self addSubViewControllerInstance:[[BBSViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE3];
-    [self addSubViewControllerInstance:[[MeViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE4];
+    [self addSubViewControllerInstance:[[MeViewController alloc] init] withTitle:DICTIONARY_TAB_BAR_TITLE3];
 }
 
 - (NSString*)getTitle:(int)index
@@ -68,19 +67,6 @@
     return imageName;
 }
 
-- (NSString*)getSelectedImage:(int)index
-{
-    NSString* imageName = nil;
-    imageName = nil;
-    return imageName;
-}
-
-- (NSString*)getUnselectedImage:(int)index
-{
-    NSString* imageName = nil;
-    return imageName;
-}
-
 - (BOOL)customizeTabItemTextColor
 {
     return NO;
@@ -98,7 +84,7 @@
 
 - (BOOL)customizeBackgroundImage
 {
-    return NO;
+    return YES;
 }
 
 @end

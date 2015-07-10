@@ -152,9 +152,11 @@
     NSArray* keys = [jsonDictionary allKeys];
     for (NSString* key in keys)
     {
-        NSString* value = [jsonDictionary objectForKey:key];
-        [notificationDataItem_ setUniqueKey:key];
-        [notificationDataItem_ setClassName:value];
+        //NSString* value = [jsonDictionary objectForKey:key];
+        //[notificationDataItem_ setUniqueKey:key];
+        //[notificationDataItem_ setClassName:value];
+        NSMutableDictionary* valueDictionaryItem = [jsonDictionary objectForKey:key];
+        [notificationDataItem_ setDataItemEelements:valueDictionaryItem];
         
         [self setNotificationDataItem:notificationDataItem_];
     }

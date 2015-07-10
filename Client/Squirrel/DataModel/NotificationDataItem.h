@@ -19,6 +19,7 @@ typedef enum
     
     ElementType_UserName,
     ElementType_UserUniqueKey,
+    ElementType_ClassRegisteredCount,
     
 } ElementType;
 

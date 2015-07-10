@@ -43,7 +43,7 @@
 
 - (void)setDataItemEelements:(NSMutableDictionary*)data
 {
-    dataItemEelements_ = data;
+    dataItemEelements_ = [[NSMutableDictionary alloc] initWithDictionary:data];
 }
 
 - (NSMutableDictionary*)getDataItemEelements
@@ -223,6 +223,13 @@
             key = @"ElementType_UserUniqueKey";
         }
             break;
+        
+        case ElementType_ClassRegisteredCount:
+        {
+            key = @"ElementType_RegisteredStudentCount";
+        }
+            break;
+        
             
         default:
             break;

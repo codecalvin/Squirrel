@@ -13,7 +13,7 @@ var serviceManager *services.ServiceManager
 
 func main() {
 	defer dispose()
-	setup()
+	//setup()
 	beego.Run()
 }
 

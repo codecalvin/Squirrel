@@ -3,10 +3,8 @@ package controllers
 
 import (
 	"fmt"
-
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
-
 	"squirrelchuckle/database"
 )
 
@@ -15,29 +13,28 @@ type ClassController struct {
 }
 
 func (this *ClassController) Get() {
-	var result [] ProfileInfo
-	c := database.MSession.DB("squirrel").C("user")
-	q := c.Find(nil)
-	iterator := q.Iter()
-	_ = iterator.All(&result)
-
-	this.Data["json"] = result
-	this.ServeJson()
-}
-
-func (this *ClassController) Post() {
-	input := this.Input()
-	name := input.Get("name")
-	id := input.Get("id")
-
-	c := database.MSession.DB("squirrel").C("test_user")
-
-	p := ProfileInfo{UserName:name, UserId:id}
-	cinfo, err := c.Upsert(bson.M{"userid": id}, p)
-
+	fmt.Print("\nClassController::Get()\n") 
+        
+	var result [] ClassItem
+	c := database.MSession.DB("squirrel").C("class")
+	err := c.Find(nil).All(&result)
 	if err != nil{
 		this.Ctx.Output.Body([]byte(err.Error()))
 	}
-
-	this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cinfo, name, id)))
+	
+	briefItems := map[string]ClassBriefItem{}
+	for index := 0; index < len(result); index++{
+		if len(result[index].ElementType_UniqueKey) < 1{
+			continue
+			}
+		briefItem := ClassBriefItem{ElementType_UniqueKey:result[index].ElementType_UniqueKey,
+    							ElementType_ClassName:result[index].ElementType_ClassName,
+    							ElementType_ClassTime:result[index].ElementType_ClassTime}
+		briefItems[result[index].ElementType_UniqueKey] = briefItem
+	}
+	
+	fmt.Print(briefItems)
+	fmt.Print("\n")
+	this.Data["json"] = briefItems
+	this.ServeJson()
 }

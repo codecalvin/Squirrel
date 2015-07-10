@@ -1,6 +1,7 @@
 package routers
 
 import (
+	//"fmt"
 	"github.com/astaxie/beego"
 
 	"squirrelchuckle/controllers"
@@ -29,4 +30,15 @@ func init() {
 
 	router("/classes", "classes", &controllers.ClassController{})
 	router("/classes/:id", "class_url", &controllers.ClassController{})
+	
+	router("/API1/Post", "add/update a class by admin", &controllers.PostController{})
+	router("/API1/Classes", "get classes", &controllers.ClassController{})
+	router("/API1/OneClass/:classKey", "get one class", &controllers.OneClassController{})
+	router("/API1/Classes/Register", "a user register a class", &controllers.RegisterController{})
+	router("/API1/Classes/UnRegister", "a user unregister a class", &controllers.UnRegisterController{})
+	
+	router("/API1/Classes/User/:userKey", "get classes of a user", &controllers.UsersController{})
+	router("/API1/OneClassUsers/:classKey", "get users of a class", &controllers.OneClassUsersController{})
+	router("/API1/OneClassUserCount/:classKey", "get user count information of a class", &controllers.OneClassUserCountController{})
+	router("/API1/Classes/QueryRegisterStatus", "query register status", &controllers.RegisterStatusController{})
 }

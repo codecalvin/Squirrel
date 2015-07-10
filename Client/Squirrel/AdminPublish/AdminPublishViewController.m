@@ -16,7 +16,6 @@
 {
     IBOutlet UITableView* notificationTableView_;
 }
-
 @end
 
 @implementation AdminPublishViewController
@@ -29,37 +28,36 @@
                                                                               style:UIBarButtonItemStyleDone
                                                                              target:self
                                                                              action:@selector(onAdd)];
+    
+    self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
 
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [notificationTableView_ reloadData];
-    dispatch_async(BackGroundQueue, ^{
-        NSData* data = [NSData dataWithContentsOfURL: ClassListURL];
-        [self performSelectorOnMainThread:@selector(fetchedData:) withObject:data waitUntilDone:YES];
-    });
+    
+    NSString* classListURLString = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_PART_CLASS_LIST];
+    [self request:RequestTypeGet urlString:classListURLString parameters:nil];
 }
 
-- (void)fetchedData:(NSData *)responseData {
-    if (responseData == nil)
-    {
-        NSLog(@"responseData in nil");
-        return;
-    }
-    //parse out the json data
-    NSError* error;
-    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:responseData //1
-                                                         options:kNilOptions
-                                                           error:&error];
-    NSLog(@"dictionary data %@",json);
+- (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject
+{
+    [super onSuccess:operation responseObject:responseObject];
     
     [[UserViewData singleton] reset];
-    [[UserViewData singleton] setJsonDictionaryData:json];
+    [[UserViewData singleton] setJsonDictionaryData:responseObject];
     
     [notificationTableView_ reloadData];
 }
 
+- (void)onFail:(AFHTTPRequestOperation *)operation error:(NSError*)error
+{
+    [super onFail:operation error:error];
+    
+    [[UserViewData singleton] reset];    
+    [notificationTableView_ reloadData];
+}
 
 - (void)onAdd
 {
@@ -145,7 +143,6 @@
     [notificationPublishViewController setEditType:EditType_Editable];
     [notificationPublishViewController setNotificationDataItem:notificationDataItem];
     [self.navigationController pushViewController:notificationPublishViewController animated:YES];
-    
 }
 
 

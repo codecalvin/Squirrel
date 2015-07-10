@@ -24,7 +24,11 @@
     {
         [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
     }
-
+    
+//    firstViewController_ = [[LoginViewController alloc] init];
+//    [self.window makeKeyAndVisible];
+//    [self.window addSubview:firstViewController_.view];
+    
     // Let the device know we want to receive push notifications
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 8000
@@ -37,6 +41,9 @@
     [application registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeSound)];
 #endif
     
+	[[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:NAVIGATION_BAR_BACKGROUND]
+                                       forBarMetrics:UIBarMetricsDefault];
+
     return YES;
 }
 
