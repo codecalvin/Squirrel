@@ -12,7 +12,7 @@
 
 
 #define SERVER_IP_KEY @"SERVER_IP_KEY"
-#define SERVER_IP_DEFAULT @"http://127.0.0.1:10443"
+#define SERVER_IP_DEFAULT @"https://127.0.0.1:10443"
 
 
 #define SERVER_IP [[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY]

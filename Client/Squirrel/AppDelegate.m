@@ -20,15 +20,12 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY] == nil)
+    NSString* ipAddress = [[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY];
+    if (ipAddress == nil || [ipAddress rangeOfString:@"http"].length <= 0)
     {
         [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
     }
-    
-//    firstViewController_ = [[LoginViewController alloc] init];
-//    [self.window makeKeyAndVisible];
-//    [self.window addSubview:firstViewController_.view];
-    
+
     // Let the device know we want to receive push notifications
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 8000
