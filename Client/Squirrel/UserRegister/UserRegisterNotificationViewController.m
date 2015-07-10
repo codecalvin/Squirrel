@@ -20,52 +20,8 @@
 @end
 
 
-@interface UserRegisterNotificationViewController (JSONCategories)
-
-+(NSDictionary*)dictionaryWithContentsOfJSONURLString:(NSString*)urlAddress;
--(NSData*)toJSON;
-@end
-
-@implementation UserRegisterNotificationViewController(JSONCategories)
-+(NSDictionary*)dictionaryWithContentsOfJSONURLString:(NSString*)urlAddress
-{
-    NSData* data = [NSData dataWithContentsOfURL: [NSURL URLWithString: urlAddress] ];
-    __autoreleasing NSError* error = nil;
-    id result = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-    if (error != nil) return nil;
-    return result;
-}
-
--(NSData*)toJSON
-{
-    NSError* error = nil;
-    id result = [NSJSONSerialization dataWithJSONObject:self options:kNilOptions error:&error];
-    if (error != nil) return nil;
-    return result;
-}
-@end
-
-
 @implementation UserRegisterNotificationViewController
-//
-//- (id)init
-//{
-//    if (self = [super init])
-//    {
-//        NSArray *nib = [[NSBundle mainBundle] loadNibNamed:@"UserRegisterNotificationViewController" owner:self options:nil];
-//        //NSArray *nib =[[NSBundle mainBundle]loadNibNamed:@"test" owner:self options:nil];
-//        self.view = [nib objectAtIndex:0];
-//    }
-//    return self;
-//}
 
-//- (id)initWithCoder:(NSCoder *)aDecoder
-//{
-//    if ((self = [super initWithCoder:aDecoder])) {
-//        [[NSBundle mainBundle] loadNibNamed:@"UserRegisterNotificationViewController" owner:self options:nil];
-//    }
-//    return self;
-//}
 
 - (void)viewDidLoad
 {
@@ -77,29 +33,26 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [notificationTableView_ reloadData];
-    dispatch_async(BackGroundQueue, ^{
-        NSData* data = [NSData dataWithContentsOfURL: ClassListURL];
-        [self performSelectorOnMainThread:@selector(fetchedData:) withObject:data waitUntilDone:YES];
-    });
+    
+    NSString* classListURLString = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_PART_CLASS_LIST];
+    [self request:RequestTypeGet urlString:classListURLString parameters:nil];
 }
 
-- (void)fetchedData:(NSData *)responseData {
-    if (responseData == nil)
-    {
-        NSLog(@"responseData in nil");
-        return;
-    }
-    
-    //parse out the json data
-    NSError* error;
-    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:responseData //1
-                                                         options:kNilOptions
-                                                           error:&error];
-    NSLog(@"dictionary data %@",json);
+- (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject
+{
+    [super onSuccess:operation responseObject:responseObject];
     
     [[UserViewData singleton] reset];
-    [[UserViewData singleton] setJsonDictionaryData:json];
+    [[UserViewData singleton] setJsonDictionaryData:responseObject];
     
+    [notificationTableView_ reloadData];
+}
+
+- (void)onFail:(AFHTTPRequestOperation *)operation error:(NSError*)error
+{
+    [super onFail:operation error:error];
+    
+    [[UserViewData singleton] reset];
     [notificationTableView_ reloadData];
 }
 

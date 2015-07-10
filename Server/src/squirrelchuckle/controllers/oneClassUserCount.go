@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
-
 	"squirrelchuckle/database"
 )
 
@@ -28,13 +27,6 @@ func (this *OneClassUserCountController) Get() {
 	}
 	registeredCount := len(classResult.RegisterUsers)
 	registeredCountString := strconv.Itoa(registeredCount)
-	
-	 //"ElementType_UniqueKey":eventUniqueKey, 
-     //   "ElementType_ClassName":eventName, 
-
-     //   "ElementType_ClassStudent":studentCount, 
-     //   "ElementType_RegisteredStudentCount":registeredStudentCount, 
-     
     userCountInfo := map[string]string{"ElementType_ClassStudent":classResult.ElementType_ClassStudent,
     							"ElementType_RegisteredStudentCount":registeredCountString}
         

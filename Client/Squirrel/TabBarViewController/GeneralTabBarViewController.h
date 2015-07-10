@@ -25,7 +25,7 @@
 
 #define TAB_BAR_BACKGROUND @"TabBarBackground.png"
 
-#define TAB_BAR_MORE_INDEX 3
+#define TAB_BAR_MORE_INDEX 2
 
 
 //--------------------------------------------------------------------------------------------------

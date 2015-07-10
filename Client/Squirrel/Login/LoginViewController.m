@@ -69,7 +69,9 @@
     {
         [[MeViewData singleton] reset];
     }
-    [MeViewData singleton].userUniqueName = userNameTextField_.text;
+    
+    [MeViewData singleton].userUniqueName = [userNameTextField_.text stringByReplacingOccurrencesOfString:@" " withString:@""];
+    [MeViewData singleton].userUniqueName = [[MeViewData singleton].userUniqueName stringByReplacingOccurrencesOfString:@"    " withString:@""];
 }
 
 - (BOOL)passLoginVerification
@@ -100,9 +102,7 @@
 - (void)loginViewSwitch
 {
     UIView* window = [self.view superview];
-    //[self.view removeFromSuperview];
     self.view.hidden = YES;
-    
     [window addSubview:[DictionaryTabBarViewController singleton].view];
     
     passwordTextField_.text = @"";

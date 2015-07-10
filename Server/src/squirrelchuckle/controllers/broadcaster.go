@@ -3,10 +3,8 @@ package controllers
 import (
 	"time"
 	"container/list"
-
 	"github.com/gorilla/websocket"
 	"github.com/astaxie/beego"
-
 	"squirrelchuckle/models"
 )
 
@@ -17,7 +15,6 @@ func newEvent(ep models.EventType, user, msg string) models.Event {
 var (
 	subscriber = make(chan Subscriber, 10)
 	unsubscribe = make(chan string, 10)
-
 	publish = make(chan models.Event, 10)
 	subscribers = list.New()
 )

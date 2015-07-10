@@ -16,7 +16,6 @@
 {
     IBOutlet UITableView* notificationTableView_;
 }
-
 @end
 
 @implementation AdminPublishViewController
@@ -59,23 +58,6 @@
     [[UserViewData singleton] reset];    
     [notificationTableView_ reloadData];
 }
-
-- (void)fetchedData:(NSData *)responseData {
-    if (responseData == nil)
-    {
-        NSLog(@"responseData in nil");
-        return;
-    }
-    //parse out the json data
-    NSError* error;
-    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:responseData //1
-                                                         options:kNilOptions
-                                                           error:&error];
-    NSLog(@"dictionary data %@",json);
-    
-    
-}
-
 
 - (void)onAdd
 {
@@ -161,7 +143,6 @@
     [notificationPublishViewController setEditType:EditType_Editable];
     [notificationPublishViewController setNotificationDataItem:notificationDataItem];
     [self.navigationController pushViewController:notificationPublishViewController animated:YES];
-    
 }
 
 

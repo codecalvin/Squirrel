@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"fmt"
-
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
-
 	"squirrelchuckle/database"
 )
 

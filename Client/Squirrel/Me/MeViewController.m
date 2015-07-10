@@ -68,6 +68,7 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
+    //self.title = [MeViewData singleton].userUniqueName;
     NSString* urlString = [NSString stringWithFormat:@"%@%@%@", SERVER_IP, URL_PART_ONE_USER_CLASS, [MeViewData singleton].userUniqueName];
     [self request:RequestTypeGet urlString:urlString parameters:nil];
 }
@@ -91,29 +92,6 @@
     [classesTableView_ reloadData];
 
 }
-
-
-- (void)fetchedData:(NSData *)responseData
-{
-    if (responseData == nil)
-    {
-        NSLog(@"get User class result in nil");
-        return;
-    }
-    
-    //parse out the json data
-    NSError* error;
-    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:responseData
-                                                         options:kNilOptions
-                                                           error:&error];
-    NSLog(@"dictionary data %@",json);
-    
-    [[MeViewData singleton] reset];
-    [[MeViewData singleton] setJsonDictionaryData:json];
-    
-    [classesTableView_ reloadData];
-}
-
 
 #pragma mark -
 #pragma mark Table View Data Source Methods

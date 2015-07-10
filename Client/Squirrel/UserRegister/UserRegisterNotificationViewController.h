@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AFHttpViewController/AFHttpViewController.h"
 
-@interface UserRegisterNotificationViewController : UIViewController<UITableViewDelegate, UITableViewDataSource>
+@interface UserRegisterNotificationViewController : AFHttpViewController<UITableViewDelegate, UITableViewDataSource>
 
 
 @end

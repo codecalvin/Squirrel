@@ -34,11 +34,9 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    //NSString* classListURLString = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_PART_CLASS_LIST];
     NSString* urlString = [NSString stringWithFormat:@"%@%@%@", SERVER_IP, URL_PART_ONE_CLASS_USERS, [OneClassReigsterStudentData singleton].classUniqueID];
     [self request:RequestTypeGet urlString:urlString parameters:nil];
     [[OneClassReigsterStudentData singleton] reset];
-   
 }
 
 - (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject
@@ -55,27 +53,6 @@
     [super onFail:operation error:error];
     
     [[OneClassReigsterStudentData singleton] reset];
-    [studentTableView_ reloadData];
-}
-
-- (void)fetchedData:(NSData *)responseData
-{
-    if (responseData == nil)
-    {
-        NSLog(@"get User class result in nil");
-        return;
-    }
-    
-    //parse out the json data
-    NSError* error;
-    NSDictionary* json = [NSJSONSerialization JSONObjectWithData:responseData
-                                                         options:kNilOptions
-                                                           error:&error];
-    NSLog(@"dictionary data %@",json);
-    
-    [[OneClassReigsterStudentData singleton] reset];
-    [[OneClassReigsterStudentData singleton] setJsonDictionaryData:json];
-    
     [studentTableView_ reloadData];
 }
 

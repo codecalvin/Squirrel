@@ -40,7 +40,6 @@ func (this *RegisterController) Post() {
 	result := ClassItem{}
 	err := c.Find(bson.M{"elementtype_uniquekey": eventUniqueKey}).One(&result)
 	
-	// to do: check full registered
 	registeredCount := len(result.RegisterUsers)
 	maxCount, _:= strconv.Atoi(result.ElementType_ClassStudent)
 	if registeredCount >= maxCount{
@@ -74,7 +73,7 @@ func (this *RegisterController) Post() {
 	err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
 	if err != nil {
 		fmt.Println(" error1")
-		err = userCollection.Insert(&UserItem{userUniqueKey, userName, make(map[string]string)})
+		err = userCollection.Insert(&UserItem{userUniqueKey, userName, map[string]ClassBriefItem{}})
 		err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
 		if err != nil {
 			fmt.Println(" error2")
@@ -82,7 +81,9 @@ func (this *RegisterController) Post() {
 	} 
 	fmt.Println("flag 3")
 	newUserResult := userResult
-	newUserResult.Classes[eventUniqueKey]=eventName
+	newUserResult.Classes[eventUniqueKey]= ClassBriefItem{ElementType_UniqueKey:result.ElementType_UniqueKey,
+    							ElementType_ClassName:result.ElementType_ClassName,
+    							ElementType_ClassTime:result.ElementType_ClassTime}
 	fmt.Println("Class in a user Results All: ", newUserResult.Classes)
 	
 	// to do: improve it. Workaround by delete and insert for update

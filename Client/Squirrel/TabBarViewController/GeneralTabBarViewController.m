@@ -199,11 +199,6 @@
         selectedImage:(NSString*)selectedName
       unselectedImage:(NSString*)unselectedName
 {
-
-    //NSString* pureNameSelected = [selectedName stringByDeletingPathExtension];
-    //NSString *fullPathSelected=[[NSBundle mainBundle] pathForResource:pureNameSelected ofType:@"png" inDirectory:@"Resources/Image"];
-   // NSString *fullPathSelected=[[NSBundle mainBundle] pathForResource:pureNameSelected ofType:@"png"];
-    
     UIImage * imageSelected = [UIImage imageNamed:selectedName];
     UIImage * imageUnSelected = [UIImage imageNamed:unselectedName];
     [tabBarItem initWithTitle:title

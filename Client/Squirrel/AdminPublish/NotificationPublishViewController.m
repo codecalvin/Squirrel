@@ -15,11 +15,11 @@
 #import "DataModel/OneClassReigsterStudentData.h"
 @interface NotificationPublishViewController ()
 {
-    IBOutlet UITextField* classNameTextField_;
+    IBOutlet UITextView* classNameTextView_;
     IBOutlet UITextField* classTimeTextField_;
     IBOutlet UITextField* classTeachTextField_;
-    IBOutlet UITextField* classDescriptionTextField_;
     IBOutlet UITextField* classMaxStudentNumberTextField_;
+    IBOutlet UITextView* classDescriptionTextView_;
     
     IBOutlet UIButton* deleteButton_;
     IBOutlet UIButton* registerButton_;
@@ -72,15 +72,16 @@
     self.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
     
     self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+    self.title = @"Class Description";
     
 }
 
 - (void)onSave
 {
-    [notificationDataItem_ setClassName: classNameTextField_.text];
+    [notificationDataItem_ setClassName: classNameTextView_.text];
     [notificationDataItem_ setClassTime: classTimeTextField_.text];
     [notificationDataItem_ setClassTeacher: classTeachTextField_.text];
-    [notificationDataItem_ setClassDescription: classDescriptionTextField_.text];
+    [notificationDataItem_ setClassDescription: classDescriptionTextView_.text];
     [notificationDataItem_ setClassMaxStudent: classMaxStudentNumberTextField_.text];
     
     [[AdminPublishViewData singleton] setNotificationDataItem:notificationDataItem_];
@@ -130,7 +131,6 @@
     
     NSString* urlString = [URLManager urlString:URLTypeUserRegister];
     [self request:RequestTypePost urlString:urlString parameters:parameters];
-    //[self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)unregisterOneUser
@@ -189,7 +189,7 @@
         NSString* registeredCount = [responseObject objectForKey:[NotificationDataItem getKey:ElementType_ClassRegisteredCount ]];
         NSString* maxCount = [responseObject objectForKey:[NotificationDataItem getKey:ElementType_ClassStudent ]];
         int leftCount = (int)(maxCount.integerValue - registeredCount.integerValue);
-        NSString* registeredInformation = [NSString stringWithFormat:@"registered:%@, left:%i",registeredCount, leftCount];
+        NSString* registeredInformation = [NSString stringWithFormat:@"Registered : %@, left : %i",registeredCount, leftCount];
         registerCountLabel_.text = registeredInformation;
         if  (editType_ == EditType_View)
         {
@@ -206,7 +206,7 @@
     }
     else if ([[URLManager urlString:URLTypeUserRegister] isEqualToString:candidate])
     {
-        //[self.navigationController popViewControllerAnimated:YES];
+        
     }
     else if ([URLManager isURLString:URLTypeQueryRegisterStatus candidate:candidate])
     {
@@ -250,6 +250,11 @@
     if (EditType_View == editType_)
     {
         [self queryRegisterStatus];
+    }
+    
+    if (editType_ == EditType_View)
+    {
+        self.navigationItem.rightBarButtonItem.title = @"";
     }
     
     [self getOneClassUserCount];
@@ -313,8 +318,6 @@
 - (IBAction)onDelete:(id)sender
 {
     [self deleteOneClass];
-    
-    //[self.navigationController popViewControllerAnimated:YES];
 }
 
 
@@ -336,7 +339,7 @@
 {
     [OneClassReigsterStudentData singleton].classUniqueID = [notificationDataItem_ getUniqueKey];
     NSString* title = [notificationDataItem_ getClassName];
-    title = [title stringByAppendingString:@" registered users"];
+    title = [title stringByAppendingString:@" Registered users"];
     oneClassRegisterStudentViewController_.title = title;
     [self.navigationController pushViewController:oneClassRegisterStudentViewController_ animated:YES];
 }
@@ -344,22 +347,20 @@
 
 - (void)setEditable:(BOOL)bEditable
 {
-    classNameTextField_.enabled = bEditable;
+    classNameTextView_.editable = bEditable;
     classTimeTextField_.enabled = bEditable;
     classTeachTextField_.enabled = bEditable;
-    classDescriptionTextField_.enabled = bEditable;
+    classDescriptionTextView_.editable = bEditable;
     classMaxStudentNumberTextField_.enabled = bEditable;
 }
 
 - (void)updateUIFromData
 {
-    classNameTextField_.text = [notificationDataItem_ getClassName];
+    classNameTextView_.text = [notificationDataItem_ getClassName];
     classTimeTextField_.text = [notificationDataItem_ getClassTime];
     classTeachTextField_.text = [notificationDataItem_ getClassTeacher];
-    classDescriptionTextField_.text = [notificationDataItem_ getClassDescription];
+    classDescriptionTextView_.text = [notificationDataItem_ getClassDescription];
     classMaxStudentNumberTextField_.text = [notificationDataItem_ getClassMaxStudent];
-    
-    self.title = [notificationDataItem_ getClassName];
 }
 
 

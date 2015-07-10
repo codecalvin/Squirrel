@@ -13,7 +13,6 @@ type OneClassController struct {
 }
 
 func (this *OneClassController) Get(){
-	// not used yet
 	fmt.Print("OneClassController.Get():")
 	
 	classKey := this.Ctx.Input.Param(":classKey")
@@ -30,14 +29,6 @@ func (this *OneClassController) Get(){
 	this.Data["json"] = result
 	this.ServeJson()
 }
-
-func (this *OneClassController) Post() {
-	fmt.Print("OneClassController.post():")
-
-   this.Data["json"] = map[string]string{"result": "to do"}
-	this.ServeJson()
-}
-
 
 func (this *OneClassController) Delete(){
 	// not used yet

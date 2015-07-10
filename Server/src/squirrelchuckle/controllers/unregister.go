@@ -56,7 +56,7 @@ func (this *UnRegisterController) Post() {
 	err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
 	if err != nil {
 		fmt.Println(" error1")
-		err = userCollection.Insert(&UserItem{userUniqueKey, userName, make(map[string]string)})
+		err = userCollection.Insert(&UserItem{userUniqueKey, userName, map[string]ClassBriefItem{}})
 		err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
 		if err != nil {
 			fmt.Println(" error2")

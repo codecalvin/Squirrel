@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"fmt"
-
 	"github.com/astaxie/beego"
 	"gopkg.in/mgo.v2/bson"
-
 	"squirrelchuckle/database"
 )
 
@@ -21,6 +19,7 @@ type ProfileInfo struct {
 type ClassBriefItem struct {
 	ElementType_UniqueKey string
 	ElementType_ClassName string
+	ElementType_ClassTime string
 }
 
 type ClassItem struct {
@@ -36,7 +35,7 @@ type ClassItem struct {
 type UserItem struct {
 	ElementType_UserUniqueKey string
 	ElementType_UserName      string
-	Classes                   map[string]string
+	Classes                   map[string]ClassBriefItem
 }
 
 type RegisterItem struct {
