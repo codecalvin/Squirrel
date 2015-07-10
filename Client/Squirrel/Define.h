@@ -33,7 +33,7 @@
 #define LIGIN_VIEW_TAG 1000
 
 
-#define NAVIGATION_BAR_BACKGROUND @"TabBarBackground.png"
+#define NAVIGATION_BAR_BACKGROUND @"TabBarBackground"
 
 
 
