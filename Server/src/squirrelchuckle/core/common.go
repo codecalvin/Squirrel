@@ -3,6 +3,7 @@ package core
 type ServiceInterface interface {
 	Alive() bool
 	Name() string
+	Depends() []string
 	Initialize() error
 	UnInitialize()
 }

@@ -69,6 +69,10 @@ func (this *ApplePushService) Alive() bool {
 	return this.alive
 }
 
+func (this *ApplePushService) Depends() []string {
+	return [] string { "ApplePushService" }
+}
+
 func (this *ApplePushService) Name() string {
 	return "ApplePushService"
 }

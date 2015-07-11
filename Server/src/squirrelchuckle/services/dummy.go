@@ -11,6 +11,10 @@ func (this *DummyService) Alive() bool {
 	return this.alive
 }
 
+func (this *DummyService) Depends() []string {
+	return nil
+}
+
 func (this *DummyService) Name() string {
 	return "DummyService"
 }

@@ -34,6 +34,10 @@ func (this *AppSetting) UpdateRunConfig(key, value string) string {
 	return value
 }
 
+func (this *AppSetting) Depends() []string {
+	return nil
+}
+
 func (this *AppSetting) Alive() bool {
 	return this.alive
 }

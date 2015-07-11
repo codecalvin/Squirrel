@@ -26,9 +26,8 @@ type DeviceToken struct {
 	pushUnreachableTick int
 	connReachableTick 	int
 
-	core.DeviceID						`json:"device_id" bson:"device_id"`
-	UserID 				core.DbDefKey 	`json:"user_id" bson:"user_id"`
-	DeviceTokenId 		[8]byte 		`json:"id" bson:"_id"`
+	UserID 				string	 	`json:"-" bson:"-"`
+	DeviceTokenId 		[]byte	 	`json:"id" bson:"_id"`
 }
 
 type DeviceTokenService struct {
@@ -52,6 +51,10 @@ var pushUnreachableTolerance, connUnreachableTolerance int
 
 func (this *DeviceTokenService) Alive() bool {
 	return this.alive
+}
+
+func (this *DeviceTokenService) Depends() []string {
+	return []string { "UserService" }
 }
 
 func (this *DeviceTokenService) Name() string {
@@ -153,7 +156,7 @@ func (this *DeviceTokenService) getUniqueId(inc uint) uint {
 
 func (this *DeviceTokenService) Add(token *DeviceToken) error {
 	token.connReachableTick = this.currentTick
-	token.DeviceID = core.DeviceID(this.getUniqueId(1))
+	//token.DeviceID = core.DeviceID(this.getUniqueId(1))
 	return this.Insert(token)
 }
 
@@ -174,7 +177,7 @@ func (this *DeviceTokenService) BulkAdd(tokens []*DeviceToken) error {
 	// update token
 	for _, token := range tokens {
 		token.connReachableTick = this.currentTick
-		token.DeviceID = core.DeviceID(curId)
+		//token.DeviceID = core.DeviceID(curId)
 		curId += 1
 	}
 	bulk.Insert(tokens)

@@ -45,7 +45,7 @@ func (this *Squirrel) Fatal(format string, v... interface{}) {
 }
 
 func (this *Squirrel) Initialize() error {
-	this.BeeLogger = logs.NewLogger(10000).Async()
+	this.BeeLogger = logs.NewLogger(10000)
 	this.AppSetting = &AppSetting{}
 	this.Database = &Database{}
 	this.ServiceManager = &ServiceManager{}
