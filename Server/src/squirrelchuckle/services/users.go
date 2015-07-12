@@ -8,12 +8,11 @@ import (
 )
 
 type UserService struct {
-	alive bool
-
-	Users map[string]User `email to user`
+	Users 			map[string]User `email to user`
 
 	*mgo.Collection
 	sync.Mutex
+	alive 			bool
 }
 
 type Avatar struct {
@@ -30,7 +29,8 @@ type UserInfo struct {
 }
 
 type User struct {
-	Email 		string			`json:"email" bson:"_id"`
+	AdsName     string          `json:"login_name" bson:"_id"`
+	Email 		string			`json:"email" bson:"email"`
 	Name 		string  		`json:"name" bson:"name"`
 	UserInfo
 	Devices 	[]*DeviceToken
@@ -44,7 +44,7 @@ func (this *UserService) Alive() bool {
 }
 
 func (this *UserService) Depends() []string {
-	return nil
+	return []string { "AuthService", "Database" }
 }
 
 func (this *UserService) Name() string {
@@ -141,4 +141,8 @@ func (this *UserService) Add(user *User) error {
 	}
 	
 	return this.Insert(makeUser(user))
+}
+
+func (this *UserService) Login(name, password string) bool {
+	return core.SquirrelApp.Auth(name, password)
 }

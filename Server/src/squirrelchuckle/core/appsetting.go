@@ -8,19 +8,26 @@ import (
 	"encoding/json"
 
 	"squirrelchuckle/utility"
+	"strconv"
 )
 
 type AppSetting struct {
-	appConfig map[string]string
-	runConfig map[string]string
+	appConfig 		map[string]string
+	runConfig 		map[string]string
 
-	AppDatabaseUrl string
+	AppDatabaseUrl 	string
 	AppDatabasePort string
 	AppDatabaseAddr string
 
-	runConfigPath string
-	alive bool
-	dirty bool
+	// exchange service
+	ExchangeAuth  	bool
+	ExchangeHost  	string
+	ExchangeUrl   	string
+	ExchangePort  	uint
+
+	runConfigPath 	string
+	alive 			bool
+	dirty		 	bool
 }
 
 func (this *AppSetting) RunConfig(key string) string{
@@ -76,12 +83,27 @@ func (this *AppSetting) Initialize() error {
 	if this.AppDatabaseUrl, ok = this.appConfig["db_url"]; !ok {
 		this.AppDatabaseUrl = "127.0.0.1"
 	}
-
 	if this.AppDatabasePort, ok = this.appConfig["db_port"]; !ok {
 		this.AppDatabasePort = "27017"
 	}
-
 	this.AppDatabaseAddr = fmt.Sprintf("%v:%v", this.AppDatabaseUrl, this.AppDatabasePort)
+
+	// exchange service setting
+	if value, ok := this.appConfig["exchange_enable"]; ok {
+		if this.ExchangeAuth = strconv.ParseBool(value); this.ExchangeAuth {
+			if this.ExchangeHost, ok = this.appConfig["exchange_server"]; !ok {
+				this.ExchangeAuth = false
+			}
+			this.ExchangePort = 597
+			if value, ok = this.appConfig["exchange_port"]; ok {
+				if this.ExchangePort, err = strconv.ParseUint(value, 10, 0); err != nil {
+					this.ExchangePort = 597
+					SquirrelApp.Error("[Appsetting] error 'exchange_port'")
+				}
+			}
+			this.ExchangeUrl = fmt.Sprintf("%v:%v", this.ExchangeHost, this.ExchangePort)
+		}
+	}
 
 	if this.runConfig = make(map[string]string); utility.FileExists(this.runConfigPath) {
 		if settings, err = ioutil.ReadFile(this.runConfigPath); err == nil {
