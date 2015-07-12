@@ -29,6 +29,7 @@ const (
 
 const (
 	DEVICE_TOKEN_LEN = 32
+	RAW_TOKEN_LEN = DEVICE_TOKEN_LEN * 2
 
 	TEST_ID_NUM = 0xfeeeee
 )

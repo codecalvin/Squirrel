@@ -90,15 +90,16 @@ func (this *AppSetting) Initialize() error {
 
 	// exchange service setting
 	if value, ok := this.appConfig["exchange_enable"]; ok {
-		if this.ExchangeAuth = strconv.ParseBool(value); this.ExchangeAuth {
+		if this.ExchangeAuth, _ = strconv.ParseBool(value); this.ExchangeAuth {
 			if this.ExchangeHost, ok = this.appConfig["exchange_server"]; !ok {
 				this.ExchangeAuth = false
 			}
 			this.ExchangePort = 597
 			if value, ok = this.appConfig["exchange_port"]; ok {
-				if this.ExchangePort, err = strconv.ParseUint(value, 10, 0); err != nil {
-					this.ExchangePort = 597
+				if value, err := strconv.ParseUint(value, 10, 0); err != nil {
 					SquirrelApp.Error("[Appsetting] error 'exchange_port'")
+				} else {
+					this.ExchangePort = uint(value)
 				}
 			}
 			this.ExchangeUrl = fmt.Sprintf("%v:%v", this.ExchangeHost, this.ExchangePort)

@@ -69,5 +69,5 @@ func (this *Squirrel) UnInitialize() {
 }
 
 func (this *Squirrel) Auth(name, password string) bool {
-	return this.auth.Auth(name, string)
+	return this.auth.Auth(name, password)
 }

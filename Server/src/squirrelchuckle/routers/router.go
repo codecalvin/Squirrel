@@ -30,9 +30,6 @@ func init() {
 	router("/user", "current_user", &controllers.UserController{})
 
 	router("/device", "device_token", &controllers.DeviceTokenController{})
-	
-	router("/classes", "classes", &controllers.ClassController{})
-	router("/classes/:id", "class_url", &controllers.ClassController{})
 }
 
 func registerServices() {

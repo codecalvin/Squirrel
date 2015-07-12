@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strconv"
 	"crypto/tls"
-	"fmt"
 	"net"
 )
 
@@ -106,21 +105,20 @@ func (this *AuthService) Initialize() error {
 		return nil
 	}
 
-	var err error
 	if this.exchangeAuth = SquirrelApp.ExchangeAuth; this.exchangeAuth {
 		appConfig := SquirrelApp.AppSetting.appConfig
 
 		this.minPool = defaultMinPool
 		if value, ok := appConfig["exchange_auth_min_pool"]; ok {
-			if this.minPool, err = strconv.ParseInt(value, 10, 0); err != nil {
-				this.minPool = defaultMinPool
+			if value, err := strconv.ParseInt(value, 10, 0); err == nil {
+				this.minPool = int(value)
 			}
 		}
 
 		this.maxPool = defaultMaxPool
 		if value, ok := appConfig["exchange_auth_max_pool"]; ok {
-			if this.maxPool, err = strconv.ParseInt(value, 10, 0); err != nil {
-				this.maxPool = defaultMaxPool
+			if value, err := strconv.ParseInt(value, 10, 0); err == nil {
+				this.maxPool = int(value)
 			}
 		}
 
