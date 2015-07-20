@@ -66,10 +66,10 @@ func (this *ApplePushService) Initialize() error {
 	// ticker
 	this.ticker = time.NewTicker(time.Second * 10)
 	go func () {
-		loop:
+	loop:
 		for {
 			select {
-			case <-this.ticker.C:
+			case <-	this.ticker.C:
 				apnsTicker(this)
 			case <- this.stopChan:
 				break loop

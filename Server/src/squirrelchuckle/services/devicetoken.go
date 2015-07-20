@@ -156,30 +156,34 @@ func (this *DeviceTokenService) flush() {
  ****************************************************/
 
 func (this *DeviceTokenService) Add(userName, device string) error {
-	if _, ok := userService.Users[userName]; ok {
-		if v, ok := this.deviceTokens[device]; ok {
-			// device already exist, update data
-			if v.UserID == userName {
-				// update device
-				touchDevice(v)
-			} else {
-				userService.RemoveDevice(v)
-				userService.AddDevice(v)
-			}
-		} else {
-			// device doesn't exist
-			token := makeNewDevice(userName, device)
-
-			this.Lock()
-			defer this.Unlock()
-			this.deviceTokens[device] = token
-			userService.AddDevice(token)
-		}
-		return nil
+	if user, ok := userService.Users[userName]; ok {
+		return this.addToExistUser(user, device)
 	} else {
 		// not find the user
 		return errors.New("invalid user name in DeviceToken add")
 	}
+}
+
+func (this *DeviceTokenService) addToExistUser(user *User, device string) error {
+	if v, ok := this.deviceTokens[device]; ok {
+		// device already exist, update data
+		if v.UserID == user.AdsName {
+			// update device
+			touchDevice(v)
+		} else {
+			userService.RemoveDevice(v)
+			userService.addDevice(v)
+		}
+	} else {
+		// device doesn't exist
+		token := makeNewDevice(user.AdsName, device)
+
+		this.Lock()
+		defer this.Unlock()
+		this.deviceTokens[device] = token
+		userService.addDevice(token)
+	}
+	return nil
 }
 
 func (this *DeviceTokenService) Stale() {

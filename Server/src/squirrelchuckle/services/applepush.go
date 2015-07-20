@@ -539,9 +539,9 @@ func (c *APNSConnection) sendListener(errCloseChannel chan *AppleError) {
 				ID:      c.payloadIdCounter,
 			}
 
-		// increment payload id counter but don't allow
-		// 0 as valid id as it is the null value
-		// only a problem if we overflow a uint32
+			// increment payload id counter but don't allow
+			// 0 as valid id as it is the null value
+			// only a problem if we overflow a uint32
 			c.payloadIdCounter++
 
 			if c.payloadIdCounter == 0 {
@@ -564,7 +564,7 @@ func (c *APNSConnection) sendListener(errCloseChannel chan *AppleError) {
 			}
 			break
 		case <-timeoutTimer.C:
-		//flush buffer to socket
+			//flush buffer to socket
 			c.inFlightBufferLock.Lock()
 			c.flushBufferToSocket()
 			c.inFlightBufferLock.Unlock()

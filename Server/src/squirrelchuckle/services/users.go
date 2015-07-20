@@ -116,75 +116,30 @@ func (this *UserService) UnInitialize() {
 	userService = nil
 }
 
-func (this *UserService) validate(user *User) bool {
-	if _, ok := this.Users[user.AdsName]; ok {
-		return false
-	}
-
-	return true
-}
-
-func (this *UserService) BulkAdd(users []*User) error {
-	length := len(users)
-	switch length {
-	case 1:
-		return this.Add(users[0])
-	case 0:
-		return nil
-	}
-
-	var validCount int
-	valid := make([]*User, length)
-	for _, user := range users {
-		if this.validate(user) {
-			valid[validCount] = makeUser(user)
-			validCount += 1
-		}
-	}
-
-	var err error
-	if validCount != len(users) {
-		core.SquirrelApp.Error("Some users not added %v", length - validCount)
-		err = errors.New("Some users not added")
-	}
-
-	valid = valid[:validCount]
-	this.Lock()
-	defer this.Unlock()
-
-	this.newUsers = append(this.newUsers, valid...)
-	for _, user := range valid {
-		this.Users[user.AdsName] = user
-	}
-
-	return err
-}
-
-func makeUser(user *User) *User {
+func makeUser(adsName, adsPass string) *User {
+	user := &User{ AdsName:adsName, AdsPass:adsPass, }
 	user.PrivilegeLevel = core.Normal
-//	if user.Devices == nil {
-//		user.Devices = make([]*DeviceToken, 1)
-//	}
+	user.Password = uuid.NewV1().String()
 	return user
 }
 
-func (this *UserService) Add(user *User) error {
-	if !this.validate(user) {
-		return errors.New("invalid user")
+func (this *UserService) Add(adsName, adsPass string) (*User, error) {
+	if _, ok := this.Users[adsName]; ok {
+		return nil,  errors.New("invalid user")
 	}
+
+	if !core.SquirrelApp.Auth(adsName, adsPass) {
+		return nil, errors.New("invalid password")
+	}
+
+	user := makeUser(adsName, adsPass)
 
 	this.Lock()
 	defer this.Unlock()
 
-	if !core.SquirrelApp.Auth(&user.AdsName, &user.AdsPass) {
-		return errors.New("invalid password")
-	}
-	user.Password = uuid.NewV4().String()
-
-	this.Users[user.AdsName] = makeUser(user)
+	this.Users[user.AdsName] = user
 	this.newUsers = append(this.newUsers, user)
-
-	return nil
+	return user, nil
 }
 
 func findDevice(user *User, device *DeviceToken) (int, *DeviceToken) {
@@ -211,31 +166,12 @@ func findDevice(user *User, device *DeviceToken) (int, *DeviceToken) {
 //}
 
 
-func (this *UserService) AddWithDevice(user *User, deviceToken string) (*User, error) {
-	if !this.validate(user) {
-		return nil, errors.New("invalid user")
-	}
-
-	if !core.SquirrelApp.Auth(&user.AdsName, &user.AdsPass) {
-		return nil, errors.New("invalid password")
-	}
-	this.Lock()
-	defer this.Unlock()
-
+func (this *UserService) AddDevice(user *User, deviceToken string) error {
 	if content, err := hex.DecodeString(deviceToken); err != nil || len(content) != APNS_TOKEN_SIZE {
-		deviceToken = ""
+		return errors.New("error device token")
 	}
 
-	user.Password = uuid.NewV4().String()
-	this.Users[user.AdsName] = makeUser(user)
-	if deviceTokenService != nil && deviceToken != "" {
-		if err := deviceTokenService.Add(user.AdsName, deviceToken); err != nil {
-			user.Devices = nil
-			return user, err
-		}
-	}
-
-	return user, nil
+	return deviceTokenService.addToExistUser(user, deviceToken)
 }
 
 // d is retrieved from DeviceTokenService
@@ -254,12 +190,12 @@ func (this *UserService) RemoveDevice(d *DeviceToken) {
 	}
 }
 
-func (this *UserService) Auth(adsName, adsPass *string) bool{
+func (this *UserService) Auth(adsName, adsPass, password *string) bool {
 	return core.SquirrelApp.Auth(adsName, adsPass)
 }
 
 // d is retrieved from DeviceTokenService
-func (this *UserService) AddDevice(d *DeviceToken) {
+func (this *UserService) addDevice(d *DeviceToken) {
 	if user, ok := this.Users[d.UserID]; ok {
 		if user.Devices == nil {
 			user.Devices = []*DeviceToken {d}
