@@ -1,10 +1,13 @@
 package services
 import (
 	"sync"
-	
-	"squirrelchuckle/core"
-	"gopkg.in/mgo.v2"
 	"errors"
+
+	"gopkg.in/mgo.v2"
+	"encoding/hex"
+
+	"github.com/twinj/uuid"
+	"squirrelchuckle/core"
 )
 
 type UserService struct {
@@ -35,6 +38,7 @@ type User struct {
 	AdsName     string          `json:"login_name" bson:"_id"`
 	Email 		string			`json:"email" bson:"email"`
 	Name 		string  		`json:"name" bson:"name"`
+	AdsPass     string        	`json:"-" bson:"-"`
 	Password  	string 			`json:"-" bson:"password"`
 	UserInfo
 	Devices 	[]*DeviceToken
@@ -154,46 +158,98 @@ func (this *UserService) Add(user *User) error {
 
 	this.Lock()
 	defer this.Unlock()
+
+	if !core.SquirrelApp.Auth(user.AdsName, user.AdsPass) {
+		return errors.New("invalid password")
+	}
+	user.Password = uuid.NewV4().String()
+
 	this.Users[user.AdsName] = makeUser(user)
 	this.newUsers = append(this.newUsers, user)
 
 	return nil
 }
 
-func (this *UserService) AddWithDevice(user *User, deviceToken string) error {
-	if !this.validate(user) {
-		return errors.New("invalid user")
+func findDevice(user *User, device *DeviceToken) (int, *DeviceToken) {
+	for i, d := range(user.Devices) {
+		if device == d {
+			return i, d
+		}
 	}
+	return -1, nil
+}
+//
+//func (this *UserService) TransferDevice(user *User, deviceToken string) {
+//	if device, ok := deviceTokenService.deviceTokens[deviceToken]; ok {
+//		if device.UserID == user.AdsName {
+//			// touch return
+//			touchDevice(device)
+//		} else {
+//			// transfer device
+//		}
+//
+//	} else {
+//		this.AddDevice()
+//	}
+//}
+
+
+func (this *UserService) AddWithDevice(user *User, deviceToken string) (*User, error) {
+	if !this.validate(user) {
+		return nil, errors.New("invalid user")
+	}
+
+	if !core.SquirrelApp.Auth(user.AdsName, user.AdsPass) {
+		return nil, errors.New("invalid password")
+	}
+	user.Password = uuid.NewV4().String()
 
 	this.Lock()
 	defer this.Unlock()
-	this.Users[user.AdsName] = makeUser(user)
-	user.Devices = make([]*DeviceToken, 1)
 
-	newDevice		:= makeNewDevice(user.AdsName, deviceToken)
-	this.newUsers 	= append(this.newUsers, user)
-	user.Devices[0] = newDevice
-	if deviceTokenService != nil {
-		deviceTokenService.deviceTokens[deviceToken] = newDevice
+	if content, err := hex.DecodeString(deviceToken); err != nil || len(content) != DEVICE_TOKEN_LEN {
+		return nil, errors.New("Error device token")
 	}
 
-	return nil
+	this.Users[user.AdsName] = makeUser(user)
+	if deviceTokenService != nil {
+		if err := deviceTokenService.Add(user.AdsName, deviceToken); err != nil {
+			user.Devices = nil
+			return user, err
+		}
+	}
+
+	return user, nil
 }
 
+// d is retrieved from DeviceTokenService
 func (this *UserService) RemoveDevice(d *DeviceToken) {
 	if user, ok := this.Users[d.UserID]; ok {
-		i := 0
-		for ; i < len(user.Devices) && user.Devices[i] != d ; i++ {}
-		user.Devices = append(user.Devices[:i], user.Devices[i+1:]...)
-		user.dirty = true
+		for i := 0 ; i < len(user.Devices); i++ {
+			if user.Devices[i] == d {
+				// as d is new from DeviceTokenService
+				// so we only need to comparing the reference
+				// || user.Devices[i].DeviceTokenId == d.DeviceTokenId {
+				user.Devices = append(user.Devices[:i], user.Devices[i+1:]...)
+				user.dirty = true
+				break
+			}
+		}
 	}
 }
 
+func (this *UserService) Auth(adsName string, adsPass *string) bool{
+	return core.SquirrelApp.Auth(adsName, adsPass)
+}
+
+// d is retrieved from DeviceTokenService
 func (this *UserService) AddDevice(d *DeviceToken) {
 	if user, ok := this.Users[d.UserID]; ok {
-		i := 0
-		for ; i < len(user.Devices) && user.Devices[i] != d ; i++ {}
-		user.Devices = append(user.Devices[:i], user.Devices[i+1:]...)
+		if user.Devices == nil {
+			user.Devices = []*DeviceToken {d}
+		} else {
+			user.Devices = append(user.Devices, d)
+		}
 		user.dirty = true
 	}
 }

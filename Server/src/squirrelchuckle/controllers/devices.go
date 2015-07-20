@@ -19,31 +19,18 @@ var deviceTokenService *services.DeviceTokenService
 func initController() bool {
 	if apnService == nil {
 		apnService, _ = core.SquirrelApp.GetServiceByName("ApplePushService").(*services.ApplePushService)
-		if apnService == nil || !apnService.Alive() {
-			apnService = nil
-			return false
-		}
 	}
-
-	println("apnService")
 	if userService == nil {
 		userService, _ = core.SquirrelApp.GetServiceByName("UserService").(*services.UserService)
-		if userService == nil || !userService.Alive() {
-			userService = nil
-			return false
-		}
 	}
-
-	println("userService")
 	if deviceTokenService == nil {
 		deviceTokenService, _ = core.SquirrelApp.GetServiceByName("DeviceTokenService").(*services.DeviceTokenService)
-		if deviceTokenService == nil || !deviceTokenService.Alive() {
-			deviceTokenService = nil
-			return false
-		}
+	}
+	if apnService == nil || userService == nil || deviceTokenService == nil ||
+		!apnService.Alive() || !userService.Alive() || !deviceTokenService.Alive() {
+		return false
 	}
 
-	println("deviceTokenService")
 	return true
 }
 

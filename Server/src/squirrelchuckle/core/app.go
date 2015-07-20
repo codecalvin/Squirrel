@@ -68,6 +68,6 @@ func (this *Squirrel) UnInitialize() {
 	this.BeeLogger.Close()
 }
 
-func (this *Squirrel) Auth(name, password string) bool {
+func (this *Squirrel) Auth(name, password *string) bool {
 	return this.auth.Auth(name, password)
 }

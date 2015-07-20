@@ -12,8 +12,8 @@ type loginAuth struct {
 	username, password string
 }
 
-func LoginAuth(username, password string) smtp.Auth {
-	return &loginAuth{username, password}
+func LoginAuth(username, password *string) smtp.Auth {
+	return &loginAuth{*username, *password}
 }
 
 func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
@@ -140,7 +140,7 @@ func (this *AuthService) UnInitialize() {
 	this.alive = false
 }
 
-func (this *AuthService) Auth(name, password string) bool {
+func (this *AuthService) Auth(name, password *string) bool {
 	var status bool
 	if this.exchangeAuth {
 		select {

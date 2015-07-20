@@ -119,6 +119,11 @@ func makeNewDevice(adsName, device string) *DeviceToken {
 	}
 }
 
+func touchDevice(device *DeviceToken) {
+	device.connReachableTick = currentTick
+	device.pushUnreachableTick = 0
+}
+
 func (this *DeviceTokenService) UnInitialize() {
 	this.Lock()
 	defer this.Unlock()
@@ -132,6 +137,7 @@ func (this *DeviceTokenService) UnInitialize() {
 	this.flush()
 	this.deviceTokens = nil
 	this.alive = false
+	deviceTokenService = nil
 }
 
 func ticker(this *DeviceTokenService) {
@@ -155,15 +161,19 @@ func (this *DeviceTokenService) Add(userName, device string) error {
 			// device already exist, update data
 			if v.UserID == userName {
 				// update device
-				v.pushUnreachableTick = 0
-				v.connReachableTick = currentTick
+				touchDevice(v)
 			} else {
 				userService.RemoveDevice(v)
 				userService.AddDevice(v)
 			}
 		} else {
 			// device doesn't exist
-			userService.AddDevice(makeNewDevice(userName, device))
+			token := makeNewDevice(userName, device)
+
+			this.Lock()
+			defer this.Unlock()
+			this.deviceTokens[device] = token
+			userService.AddDevice(token)
 		}
 		return nil
 	} else {

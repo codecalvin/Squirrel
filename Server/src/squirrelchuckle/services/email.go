@@ -7,6 +7,7 @@ type EmailService struct {
 	sync.Mutex
 }
 
+var emailService *EmailService
 func (this *EmailService) Alive() bool {
 	return this.alive
 }
@@ -28,6 +29,7 @@ func (this *EmailService) Initialize() error {
 	}
 
 	this.alive = true
+	emailService = this
 	return nil
 }
 
@@ -40,4 +42,5 @@ func (this *EmailService) UnInitialize() {
 	}
 
 	this.alive = false
+	emailService = nil
 }

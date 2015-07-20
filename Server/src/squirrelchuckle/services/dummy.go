@@ -7,6 +7,7 @@ type DummyService struct {
 	sync.Mutex
 }
 
+var dummyService *DummyService
 func (this *DummyService) Alive() bool {
 	return this.alive
 }
@@ -28,6 +29,7 @@ func (this *DummyService) Initialize() error {
 	}
 
 	this.alive = true
+	dummyService = this
 	return nil
 }
 
@@ -40,4 +42,5 @@ func (this *DummyService) UnInitialize() {
 	}
 
 	this.alive = false
+	dummyService = nil
 }
