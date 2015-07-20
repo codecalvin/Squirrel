@@ -3,6 +3,13 @@
     "db_port" : "27017",
     "push_unreachable_tolerance" : "10",
     "conn_unreachable_tolerance" : "168",
-    "device_token_tick" : "3600"
+    "device_token_tick" : "3600",
+
+    "exchange_enable" : "true",
+    "exchange_server" : "connect.autodesk.com",
+    "exchange_port" : "597",
+
+    "exchange_auth_min_pool" : "10",
+    "exchange_auth_max_pool" : "200"
 }
 

@@ -19,5 +19,8 @@ go get github.com/astaxie/beego
 go get github.com/beego/bee
 go get github.com/beego/i18n
 
+# uuid
+go get -u github.com/twinj/uuid
+
 # tls
 # go run $GOROOT/src/crypto/tls/generate_cert.go --host 127.0.0.1

@@ -6,8 +6,6 @@ import (
 	"sync"
 )
 
-type DbDefKey string
-
 type Database struct {
 	*mgo.Session
 	counterCol *mgo.Collection
@@ -23,6 +21,10 @@ type Counter struct {
 
 func (this *Database) Alive() bool {
 	return this.alive
+}
+
+func (this *Database) Depends() []string {
+	return []string {"AppSetting"}
 }
 
 func (this *Database) Name() string {

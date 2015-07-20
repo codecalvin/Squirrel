@@ -6,6 +6,7 @@ import (
 	"time"
 	"squirrelchuckle/core"
 	"gopkg.in/mgo.v2"
+	"errors"
 )
 
 /*
@@ -26,32 +27,35 @@ type DeviceToken struct {
 	pushUnreachableTick int
 	connReachableTick 	int
 
-	core.DeviceID						`json:"device_id" bson:"device_id"`
-	UserID 				core.DbDefKey 	`json:"user_id" bson:"user_id"`
-	DeviceTokenId 		[8]byte 		`json:"id" bson:"_id"`
+	UserID 				string	 	`json:"-" bson:"-"`
+	DeviceTokenId 		string	 	`json:"id" bson:"_id"`
 }
 
+var currentTick int
+
 type DeviceTokenService struct {
-	deviceTokens map[uint32]*DeviceToken
-	changedTokens map[uint32]*DeviceToken `dirty tokens, false for stall entries, true for new entries`
-
+	deviceTokens 		map[string]*DeviceToken
+	staleTokens         []*DeviceToken
 	*mgo.Collection
-	currentTick,staleTick int
-	staleTokens []uint32
+	staleTick  			int
+
 	alive bool
-
-	uniqueId uint
-
-	ticker *time.Ticker
-	stopChan chan bool
+	ticker 				*time.Ticker
+	stopChan 			chan bool
 	sync.Mutex
 }
 
 var defaultPushUnreachableTolerance, defaultConnUnreachableTolerance int = 20, 7 * 24
 var pushUnreachableTolerance, connUnreachableTolerance int
 
+var deviceTokenService *DeviceTokenService
+
 func (this *DeviceTokenService) Alive() bool {
 	return this.alive
+}
+
+func (this *DeviceTokenService) Depends() []string {
+	return []string { "UserService", "AppSetting" }
 }
 
 func (this *DeviceTokenService) Name() string {
@@ -66,8 +70,6 @@ func (this *DeviceTokenService) Initialize() (error) {
 		return nil
 	}
 
-	this.changedTokens = make(map[uint32]*DeviceToken)
-	this.staleTokens = make([]uint32, 0, 10000)
 	this.stopChan = make(chan bool)
 	
 	var err error
@@ -79,24 +81,18 @@ func (this *DeviceTokenService) Initialize() (error) {
 		connUnreachableTolerance = defaultConnUnreachableTolerance
 	}
 
-	// setup unique id
-	this.uniqueId = core.SquirrelApp.UniqueId("device_token")
-	this.Collection = core.SquirrelApp.DB("squirrel").C("device_token")
-	q := this.Find(nil)
-	iterator := q.Iter()
+	this.deviceTokens = make(map[string]*DeviceToken, len(userService.Users))
+	this.staleTokens = make([]*DeviceToken, 1000)
 
-	var result []struct { token uint32 }
-	iterator.All(&result)
-	iterator.Close()
-
-	this.deviceTokens = make(map[uint32]*DeviceToken, len(result))
-
-	for _, token := range result {
-		this.deviceTokens[token.token] = new(DeviceToken)
+	for _, user := range userService.Users {
+		for _, device := range user.Devices {
+			device.UserID = user.AdsName
+			this.deviceTokens[device.DeviceTokenId] = device
+		}
 	}
 
 	// ticker
-	this.ticker = time.NewTicker(time.Millisecond * 100)
+	this.ticker = time.NewTicker(time.Hour)
 	go func () {
 loop:
 		for {
@@ -110,7 +106,22 @@ loop:
 	} ()
 
 	this.alive = true
+	deviceTokenService = this
 	return nil
+}
+
+func makeNewDevice(adsName, device string) *DeviceToken {
+	return &DeviceToken{
+		UserID: 		adsName,
+		DeviceTokenId: 	device,
+		connReachableTick:	currentTick,
+		pushUnreachableTick:0,
+	}
+}
+
+func touchDevice(device *DeviceToken) {
+	device.connReachableTick = currentTick
+	device.pushUnreachableTick = 0
 }
 
 func (this *DeviceTokenService) UnInitialize() {
@@ -126,11 +137,12 @@ func (this *DeviceTokenService) UnInitialize() {
 	this.flush()
 	this.deviceTokens = nil
 	this.alive = false
+	deviceTokenService = nil
 }
 
 func ticker(this *DeviceTokenService) {
-	this.currentTick++
-	this.staleTick = this.currentTick - connUnreachableTolerance
+	currentTick++
+	this.staleTick = currentTick - connUnreachableTolerance
 	this.Stale()
 }
 
@@ -143,75 +155,44 @@ func (this *DeviceTokenService) flush() {
 	methods
  ****************************************************/
 
-func (this *DeviceTokenService) getUniqueId(inc uint) uint {
-	this.Lock()
-	defer this.Unlock()
-	curId := this.uniqueId
-	this.uniqueId += inc
-	return curId
-}
+func (this *DeviceTokenService) Add(userName, device string) error {
+	if _, ok := userService.Users[userName]; ok {
+		if v, ok := this.deviceTokens[device]; ok {
+			// device already exist, update data
+			if v.UserID == userName {
+				// update device
+				touchDevice(v)
+			} else {
+				userService.RemoveDevice(v)
+				userService.AddDevice(v)
+			}
+		} else {
+			// device doesn't exist
+			token := makeNewDevice(userName, device)
 
-func (this *DeviceTokenService) Add(token *DeviceToken) error {
-	token.connReachableTick = this.currentTick
-	token.DeviceID = core.DeviceID(this.getUniqueId(1))
-	return this.Insert(token)
-}
-
-func (this *DeviceTokenService) BulkAdd(tokens []*DeviceToken) error {
-	length := len(tokens)
-
-	switch length {
-	case 1:
-		return this.Add(tokens[0])
-	case 0:
+			this.Lock()
+			defer this.Unlock()
+			this.deviceTokens[device] = token
+			userService.AddDevice(token)
+		}
 		return nil
-	}
-
-	curId := this.getUniqueId(uint(length))
-	bulk := this.Bulk()
-	bulk.Unordered()
-
-	// update token
-	for _, token := range tokens {
-		token.connReachableTick = this.currentTick
-		token.DeviceID = core.DeviceID(curId)
-		curId += 1
-	}
-	bulk.Insert(tokens)
-
-	var err error
-	if _, err = bulk.Run(); err != nil {
-		core.SquirrelApp.Error(err.Error())
-	}
-	return err
-}
-
-func (this *DeviceTokenService) Touch (tokens []uint32) {
-	for _, token := range tokens {
-		if e := this.deviceTokens[token]; e != nil {
-			e.pushUnreachableTick = 0
-		}
-	}
-}
-
-func (this *DeviceTokenService) Disconnect (tokens []uint32) {
-	for _, token := range tokens {
-		if e := this.deviceTokens[token]; e != nil {
-			e.connReachableTick = this.currentTick
-		}
+	} else {
+		// not find the user
+		return errors.New("invalid user name in DeviceToken add")
 	}
 }
 
 func (this *DeviceTokenService) Stale() {
 	// TODO: tick overflow
-	for k, v := range this.deviceTokens {
+	for _, v := range this.deviceTokens {
 		if v.pushUnreachableTick >= pushUnreachableTolerance && v.connReachableTick >= this.staleTick {
-			this.staleTokens = append(this.staleTokens, k)
+			this.staleTokens = append(this.staleTokens, v)
 		}
 	}
 
 	for _, v := range this.staleTokens {
-		delete(this.deviceTokens, v)
+		userService.RemoveDevice(v)
+		delete(this.deviceTokens, v.DeviceTokenId)
 	}
 
 	this.staleTokens = this.staleTokens[0:0]

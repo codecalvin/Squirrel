@@ -5,6 +5,7 @@ type Squirrel struct {
 	*AppSetting
 	*Database
 	*ServiceManager
+	auth *AuthService
 	*logs.BeeLogger
 }
 
@@ -45,19 +46,19 @@ func (this *Squirrel) Fatal(format string, v... interface{}) {
 }
 
 func (this *Squirrel) Initialize() error {
-	this.BeeLogger = logs.NewLogger(10000).Async()
+	this.BeeLogger = logs.NewLogger(10000)
 	this.AppSetting = &AppSetting{}
 	this.Database = &Database{}
+	this.auth = &AuthService{}
+
 	this.ServiceManager = &ServiceManager{}
+	this.ServiceManager.Initialize()
 
-	var err error
-	if err = this.AppSetting.Initialize(); err == nil {
-		if err = this.Database.Initialize(); err == nil {
-			err = this.ServiceManager.Initialize()
-		}
-	}
+	this.ServiceManager.RegisterService(this.Database)
+	this.ServiceManager.RegisterService(this.AppSetting)
+	this.ServiceManager.RegisterService(this.auth)
 
-	return err
+	return nil
 }
 
 func (this *Squirrel) UnInitialize() {
@@ -65,4 +66,8 @@ func (this *Squirrel) UnInitialize() {
 	this.Database.UnInitialize()
 	this.AppSetting.UnInitialize()
 	this.BeeLogger.Close()
+}
+
+func (this *Squirrel) Auth(name, password *string) bool {
+	return this.auth.Auth(name, password)
 }

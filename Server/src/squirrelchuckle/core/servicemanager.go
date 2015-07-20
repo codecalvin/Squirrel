@@ -2,27 +2,65 @@ package core
 import "sync"
 
 type ServiceManager struct {
-	services map[string]ServiceInterface
-	spawnChan chan ServiceInterface
-	termChan chan bool
+	services 		map[string] ServiceInterface
+	spawnChan 		chan ServiceInterface
+	matureChan 		chan bool
+	termChan 		chan bool
+
 	postInitHandler map[string] []PostInitFunc
+	// pending service name => service
+	pendingService 	map[string] ServiceInterface
+	// pending service name => depends service names
+	pendingChain    []ServiceInterface
 	sync.Mutex
 	alive bool
 }
 
-func spawnRouting(this *ServiceManager) {
+func findMature(manager *ServiceManager) ServiceInterface {
+	manager.Lock()
+	defer manager.Unlock()
+	var si ServiceInterface
+
+	// find from the last one
+	for i := len(manager.pendingChain) - 1; i >= 0; i-- {
+		service := manager.pendingChain[i]
+		si = service
+		for _, name := range service.Depends() {
+			if _, ok := manager.services[name]; !ok {
+				si = nil
+				break
+			}
+		}
+
+		if si != nil {
+			manager.pendingChain = append(manager.pendingChain[:i], manager.pendingChain[i+1:]...)
+			break
+		}
+	}
+	return si
+}
+
+func matureRouting(this *ServiceManager) {
 loop:
 	for {
 		select {
-		case spawn := <-this.spawnChan:
-			name := spawn.Name()
-			if err := spawn.Initialize(); err == nil {
-				println("Initialize service %v", name)
+		case _ = <-this.matureChan:
+			// check service ready to initialize
+			var si ServiceInterface
+			if si = findMature(this); si == nil {
+				return
+			}
+
+			name := si.Name()
+			if err := si.Initialize(); err == nil {
+				SquirrelApp.Info("Initialize service %v", name)
 				this.Lock()
-				this.services[name] = spawn
+				this.services[name] = si
 				this.Unlock()
+
+				this.matureChan <- true
 			} else {
-				SquirrelApp.Critical("[ServiceManager]: Failed to initialize service %v. Error: %v", name, err)
+				SquirrelApp.Error("[ServiceManager]: Failed to initialize service %v. Error: %v", name, err)
 			}
 		case <- this.termChan:
 			break loop
@@ -34,19 +72,26 @@ func (this *ServiceManager) Alive() bool {
 	return true
 }
 
+func (this *ServiceManager) Depends() [] string {
+	return nil
+}
+
 func (this *ServiceManager) Name() string {
 	return "ServiceManager"
 }
 
 func (this *ServiceManager) Initialize() error {
-	this.services = make(map[string]ServiceInterface)
-	this.spawnChan = make(chan ServiceInterface)
 	this.termChan = make(chan bool)
-	
+	this.matureChan = make(chan bool)
+	this.spawnChan = make(chan ServiceInterface)
+	this.services = make(map[string]ServiceInterface)
+
+	this.pendingService = make(map[string]ServiceInterface)
+	this.pendingChain = make([]ServiceInterface, 0, 5)
 	this.postInitHandler = make(map[string] []PostInitFunc)
 	this.alive = true
 
-	go spawnRouting(this)
+	go matureRouting(this)
 
 	return nil
 }
@@ -100,9 +145,12 @@ func (this *ServiceManager) RegisterService (service ServiceInterface) bool {
 	
 	switch updateServices() {
 	case 2:
-		this.spawnChan <- service
+		this.Lock()
+		this.pendingChain = append(this.pendingChain, service)
+		this.Unlock()
 		fallthrough
 	case 1:
+		this.matureChan <- true
 		SquirrelApp.Info("[ServiceManager]: Register service :%v", name)
 		return true
 	default:
