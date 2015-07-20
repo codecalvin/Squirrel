@@ -1,42 +1,25 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/astaxie/beego"
-	"gopkg.in/mgo.v2/bson"
-	"squirrelchuckle/database"
+	"squirrelchuckle/services"
+	"fmt"
+	"squirrelchuckle/core"
 )
 
 type UsersController struct {
 	beego.Controller
 }
 
-type ProfileInfo struct {
-	UserName string
-	UserId   string
+type SignUpController struct {
+	beego.Controller
 }
 
-type ClassBriefItem struct {
-	ElementType_UniqueKey string
-	ElementType_ClassName string
-	ElementType_ClassTime string
+type SignInController struct {
+	beego.Controller
 }
 
-type ClassItem struct {
-	ElementType_UniqueKey        string
-	ElementType_ClassName        string
-	ElementType_ClassTime        string
-	ElementType_ClassTeacher     string
-	ElementType_ClassStudent     string
-	ElementType_ClassDescription string
-	RegisterUsers                map[string]string
-}
-
-type UserItem struct {
-	ElementType_UserUniqueKey string
-	ElementType_UserName      string
-	Classes                   map[string]ClassBriefItem
-}
+var userService *services.UserService
 
 type RegisterItem struct {
 	ElementType_UniqueKey     string
@@ -46,44 +29,87 @@ type RegisterItem struct {
 }
 
 func (this *UsersController) Get() {
-
-	// not used yet
-	fmt.Print("UsersController.Get():")
-
 	userKey := this.Ctx.Input.Param(":userKey")
-	fmt.Println(userKey)
-
-	userCollection := database.MSession.DB("squirrel").C("user")
-	var userResult = UserItem{}
-	err := userCollection.Find(bson.M{"elementtype_useruniquekey": userKey}).One(&userResult)
-	if err != nil {
-		fmt.Println("error1")
-		this.Ctx.Output.Body([]byte(err.Error()))
+	fmt.Println(userKey, "========")
+	if user, ok := userService.Users[userKey]; ok {
+		this.Data["json"] = user.Classes
 	}
-	fmt.Println("Results All: ", userResult.Classes)
-	this.Data["json"] = userResult.Classes
 	this.ServeJson()
-}
-
-func (this *UsersController) Post() {
-	input := this.Input()
-	name := input.Get("name")
-	id := input.Get("id")
-
-	c := database.MSession.DB("squirrel").C("user")
-
-	p := ProfileInfo{UserName: name, UserId: id}
-	cinfo, err := c.Upsert(bson.M{"userid": id}, p)
-
-	if err != nil {
-		this.Ctx.Output.Body([]byte(err.Error()))
-	}
-
-	this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cinfo, name, id)))
 }
 
 // -----------------------------------------------
 // User Management
 type UserController struct {
 	beego.Controller
+}
+
+func (this *SignUpController) Post() {
+	if userService == nil {
+		userService, _ = core.SquirrelApp.GetServiceByName("UserService").(*services.UserService)
+	}
+	if userService == nil {
+		this.Data["json"] = fmt.Sprintf("service is down a %v, u %v, d %v", apnService==nil, userService == nil, deviceTokenService==nil)
+		this.ServeJson()
+		return
+	}
+	input 		:= this.Input()
+	adsName := input.Get("ads_name")
+	adsPass := input.Get("ads_pass")
+	deviceToken := input.Get("device_token")
+
+	fmt.Println("111111")
+	if _, ok := userService.Users[adsName]; ok {
+		fmt.Println("User already registed")
+		this.CustomAbort(400, "User already registed")
+		return
+	}
+
+	user := &services.User {
+		AdsName:    adsName,
+		AdsPass:    adsPass,
+	}
+
+	fmt.Println("222222")
+	if newUser, err := userService.AddWithDevice(user, deviceToken); newUser == nil {
+		fmt.Println(newUser, err)
+		this.CustomAbort(400, err.Error())
+	} else {
+		this.Data["json"] = []string { newUser.Password }
+		fmt.Println("OK", newUser, err)
+	}
+	fmt.Println("333333")
+	this.ServeJson()
+}
+
+func (this *SignInController) Post() {
+	input 		:= this.Input()
+	adsName	 	:= input.Get("ads_name")
+	adsPass 	:= input.Get("ads_pass")
+	password 	:= input.Get("password")
+	deviceToken := input.Get("device_token")
+
+	if user, ok := userService.Users[adsName]; !ok {
+		this.CustomAbort(400, "User doesn't exist")
+		return
+	} else {
+		if password == user.Password {
+			// authorized login
+		} else if len(adsPass) > 0 {
+			if userService.Auth(&user.AdsName, &user.AdsPass) {
+				// authorized login
+			} else {
+				this.CustomAbort(400, "User name or password error")
+				return
+			}
+		} else {
+			this.CustomAbort(400, "User name or password error")
+			return
+		}
+
+		this.Data["password"] = user
+
+		// transfer & touch device token
+		deviceTokenService.Add(user.AdsName, deviceToken)
+		this.ServeJson()
+	}
 }

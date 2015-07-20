@@ -4,8 +4,9 @@ package controllers
 import (
 	"fmt"
 	"github.com/astaxie/beego"
-	"squirrelchuckle/database"
 	"gopkg.in/mgo.v2/bson"
+	"squirrelchuckle/core"
+	"squirrelchuckle/services"
 )
 
 type RegisterStatusController struct {
@@ -27,8 +28,8 @@ func (this *RegisterStatusController) Get(){
 	fmt.Println(userName)
 	
 	// register user to class
-	c := database.MSession.DB("squirrel").C("class")
-	result := ClassItem{}
+	c := core.SquirrelApp.DB("squirrel").C("class")
+	result := services.ClassItem{}
 	err := c.Find(bson.M{"elementtype_uniquekey": eventUniqueKey}).One(&result)
 	if err != nil{
 		this.Ctx.Output.Body([]byte(err.Error()))

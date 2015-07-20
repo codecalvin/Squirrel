@@ -7,8 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AFHttpViewController/AFHttpViewController.h"
 
-@interface LoginViewController : UIViewController
+@interface LoginViewController : AFHttpViewController
 
 - (IBAction)onLoginButton:(id)sender;
 

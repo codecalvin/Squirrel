@@ -26,8 +26,6 @@
 
 - (void)request:(RequestType)type urlString:(NSString*)urlString parameters:(id)parameters
 {
-    
-    
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     
     [self setHttpsSecurityPolicy:urlString operationManager:manager];
@@ -43,8 +41,8 @@
                   failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                       [self onFail:operation error:error];}
              ];
+            break;
         }
-        break;
         case RequestTypePost:
         {
             NSLog(@"request POST:%@", urlString);
@@ -55,8 +53,8 @@
                   failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                       [self onFail:operation error:error];}
              ];
+            break;
         }
-        break;
         case RequestTypeDelete:
         {
             NSLog(@"request DELETE:%@", urlString);
@@ -67,10 +65,7 @@
                   failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                       [self onFail:operation error:error];}
              ];
-            
-        }
-            break;
-
+            break;        }
         default:
             break;
     }

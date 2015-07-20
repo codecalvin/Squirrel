@@ -2,29 +2,12 @@ package main
 
 import (
 	"github.com/astaxie/beego"
-	
+
+	"squirrelchuckle/core"
 	_ "squirrelchuckle/routers"
-	"squirrelchuckle/database"
-	"squirrelchuckle/services"
-	"squirrelchuckle/settings"
 )
 
-var serviceManager *services.ServiceManager
-
 func main() {
-	defer dispose()
-	setup()
+	core.Run()
 	beego.Run()
 }
-
-func setup() {
-	serviceManager = services.GetManager()
-	serviceManager.Initialize()
-}
-
-func dispose() {
-	settings.Serialize()
-	serviceManager.UnInitialize()
-	database.Close()
-}
-

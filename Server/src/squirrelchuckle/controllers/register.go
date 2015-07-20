@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strconv"
 	"github.com/astaxie/beego"
-	"squirrelchuckle/database"
 	"gopkg.in/mgo.v2/bson"
+	"squirrelchuckle/core"
+	"squirrelchuckle/services"
 )
 
 type RegisterController struct {
@@ -36,8 +37,8 @@ func (this *RegisterController) Post() {
 	fmt.Println(userName)
 	
 	// register user to class
-	c := database.MSession.DB("squirrel").C("class")
-	result := ClassItem{}
+	c := core.SquirrelApp.DB("squirrel").C("class")
+	result := services.ClassItem{}
 	err := c.Find(bson.M{"elementtype_uniquekey": eventUniqueKey}).One(&result)
 	
 	registeredCount := len(result.RegisterUsers)
@@ -65,39 +66,23 @@ func (this *RegisterController) Post() {
 	}
 	
 	// register class to user
-	fmt.Println(database.DataBaseNameString)
-	fmt.Println(database.DataBaseUserCollectionNameString)
-	userCollection := database.MSession.DB("squirrel").C("user")
-	fmt.Println("flag 0")
-	userResult := UserItem{}
-	err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
-	if err != nil {
-		fmt.Println(" error1")
-		err = userCollection.Insert(&UserItem{userUniqueKey, userName, map[string]ClassBriefItem{}})
-		err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
-		if err != nil {
-			fmt.Println(" error2")
-		}
-	} 
-	fmt.Println("flag 3")
-	newUserResult := userResult
-	newUserResult.Classes[eventUniqueKey]= ClassBriefItem{ElementType_UniqueKey:result.ElementType_UniqueKey,
-    							ElementType_ClassName:result.ElementType_ClassName,
-    							ElementType_ClassTime:result.ElementType_ClassTime}
-	fmt.Println("Class in a user Results All: ", newUserResult.Classes)
-	
-	// to do: improve it. Workaround by delete and insert for update
-	//_, err = userCollection.Upsert(bson.M{"elementtype_useruniquekey": userUniqueKey}, newUserResult)
-	_, err = userCollection.RemoveAll(bson.M{"elementtype_useruniquekey": userUniqueKey})
-	if err != nil{
-		this.Ctx.Output.Body([]byte(err.Error()))
+	var user *services.User
+	var ok bool
+	if user, ok = userService.Users[userUniqueKey]; !ok {
+		this.Data["json"] = map[string]string{"result": "fail"}
+		this.ServeJson()
+		return
 	}
-	err = userCollection.Insert(&newUserResult)
-	err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
-		if err != nil {
-			fmt.Println(" error4")
-		}
-	fmt.Println("user:", userResult)
+
+	if user.Classes == nil {
+		user.Classes = make(map[string] *services.ClassBriefItem)
+	}
+
+	user.Classes[eventUniqueKey] = &services.ClassBriefItem{ElementType_UniqueKey:result.ElementType_UniqueKey,
+		ElementType_ClassName:result.ElementType_ClassName,
+		ElementType_ClassTime:result.ElementType_ClassTime,
+	}
+
     this.Data["json"] = map[string]string{"result": "OK"}
 	this.ServeJson()
 }

@@ -4,8 +4,9 @@ package controllers
 import (
 	"fmt"
 	"github.com/astaxie/beego"
-	"squirrelchuckle/database"
 	"gopkg.in/mgo.v2/bson"
+	"squirrelchuckle/core"
+	"squirrelchuckle/services"
 )
 
 type OneClassController struct {
@@ -18,9 +19,9 @@ func (this *OneClassController) Get(){
 	classKey := this.Ctx.Input.Param(":classKey")
 	fmt.Println(classKey)
 	
-	c := database.MSession.DB("squirrel").C("class")
+	c := core.SquirrelApp.DB("squirrel").C("class")
 	
-	result := ClassItem{}
+	result := services.ClassItem{}
 	err := c.Find(bson.M{"elementtype_uniquekey": classKey}).One(&result)
 	if err != nil{
 		this.Ctx.Output.Body([]byte(err.Error()))
@@ -37,7 +38,7 @@ func (this *OneClassController) Delete(){
 	classKey := this.Ctx.Input.Param(":classKey")
 	fmt.Println(classKey)
 	
-	c := database.MSession.DB("squirrel").C("class")
+	c := core.SquirrelApp.DB("squirrel").C("class")
 
 	_, err := c.RemoveAll(bson.M{"elementtype_uniquekey": classKey})
 	if err != nil{

@@ -20,11 +20,11 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    NSString* ipAddress = [[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY];
-    if (ipAddress == nil || [ipAddress rangeOfString:@"http"].length <= 0)
-    {
+    //NSString* ipAddress = [[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY];
+    //if (ipAddress == nil || [ipAddress rangeOfString:@"http"].length <= 0)
+    //{
         [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
-    }
+    //}
 
     // Let the device know we want to receive push notifications
 

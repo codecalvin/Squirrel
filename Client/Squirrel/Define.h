@@ -12,12 +12,13 @@
 
 
 #define SERVER_IP_KEY @"SERVER_IP_KEY"
-#define SERVER_IP_DEFAULT @"https://127.0.0.1:10443"
+#define SERVER_IP_DEFAULT @"https://10.148.240.204:10443"
 
 
 #define SERVER_IP [[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY]
 
-
+#define URL_SIGNUP_URL @"/signup"
+#define URL_LOGIN_URL @"/login"
 #define URL_PART_DELETE_ONE_CLASS @"/API1/Classes/Delete/"
 #define URL_PART_REGISTER_ONE_CLASS @"/API1/Classes/Register"
 #define URL_PART_UNREGISTER_ONE_CLASS @"/API1/Classes/UnRegister"

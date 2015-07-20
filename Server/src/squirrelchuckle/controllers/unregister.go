@@ -4,8 +4,9 @@ package controllers
 import (
 	"fmt"
 	"github.com/astaxie/beego"
-	"squirrelchuckle/database"
 	"gopkg.in/mgo.v2/bson"
+	"squirrelchuckle/core"
+	"squirrelchuckle/services"
 )
 
 type UnRegisterController struct {
@@ -28,8 +29,8 @@ func (this *UnRegisterController) Post() {
 	fmt.Println(userName)
 	
 	// register user to class
-	c := database.MSession.DB("squirrel").C("class")
-	result := ClassItem{}
+	c := core.SquirrelApp.DB("squirrel").C("class")
+	result := services.ClassItem{}
 	err := c.Find(bson.M{"elementtype_uniquekey": eventUniqueKey}).One(&result)
 	if err != nil{
 		this.Ctx.Output.Body([]byte(err.Error()))
@@ -48,34 +49,9 @@ func (this *UnRegisterController) Post() {
 	}
 	
 	// register class to user
-	fmt.Println(database.DataBaseNameString)
-	fmt.Println(database.DataBaseUserCollectionNameString)
-	userCollection := database.MSession.DB("squirrel").C("user")
-	fmt.Println("flag 0")
-	userResult := UserItem{}
-	err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
-	if err != nil {
-		fmt.Println(" error1")
-		err = userCollection.Insert(&UserItem{userUniqueKey, userName, map[string]ClassBriefItem{}})
-		err = userCollection.Find(bson.M{"elementtype_useruniquekey": userUniqueKey}).One(&userResult)
-		if err != nil {
-			fmt.Println(" error2")
-		}
-	} 
-	fmt.Println("flag 3")
-	newUserResult := userResult
-	delete(newUserResult.Classes, eventUniqueKey)
-	fmt.Println("Class in a user Results All: ", newUserResult.Classes)
-	
-	// to do: improve it. Workaround by delete and insert for update
-	//_, err = userCollection.Upsert(bson.M{"elementtype_useruniquekey": userUniqueKey}, newUserResult)
-	_, err = userCollection.RemoveAll(bson.M{"elementtype_useruniquekey": userUniqueKey})
-	if err != nil{
-		this.Ctx.Output.Body([]byte(err.Error()))
+	if user, ok := userService.Users[userUniqueKey]; ok {
+		delete(user.Classes, eventUniqueKey)
 	}
-	err = userCollection.Insert(&newUserResult)
-
-	fmt.Println("user:", userResult)
-    this.Data["json"] = map[string]string{"result": "OK"}
+	this.Data["json"] = map[string]string{"result": "OK"}
 	this.ServeJson()
 }

@@ -4,26 +4,13 @@ package controllers
 import (
 	"fmt"
 	"github.com/astaxie/beego"
-	"squirrelchuckle/database"
 	"gopkg.in/mgo.v2/bson"
+	"squirrelchuckle/core"
+	"squirrelchuckle/services"
 )
 
 type PostController struct {
 	beego.Controller
-}
-
-func (this *PostController) Get(){
-	// not used yet
-	fmt.Print("get go:")
-	
-	var result [] ProfileInfo
-	c := database.MSession.DB("squirrel").C("user")
-	q := c.Find(nil)
-	iterator := q.Iter()
-	_ = iterator.All(&result)
-
-	this.Data["json"] = result
-	this.ServeJson()
 }
 
 func (this *PostController) Post() {
@@ -44,11 +31,11 @@ func (this *PostController) Post() {
 	fmt.Println(studentCount)
 	fmt.Println(eventDescription)
 	
-	c := database.MSession.DB("squirrel").C("class")
-	result := ClassItem{}
+	c := core.SquirrelApp.DB("squirrel").C("class")
+	result := services.ClassItem{}
 	err := c.Find(bson.M{"elementtype_uniquekey": eventUniqueKey}).One(&result)
 	if err != nil{
-		err = c.Insert(&ClassItem{eventUniqueKey, eventName, eventTime,teacher,studentCount,eventDescription, make(map[string]string)})
+		err = c.Insert(&services.ClassItem{eventUniqueKey, eventName, eventTime,teacher,studentCount,eventDescription, make(map[string]string)})
 	} else {
 			newResult := result
 			_, err = c.RemoveAll(bson.M{"elementtype_uniquekey": eventUniqueKey})
@@ -64,7 +51,7 @@ func (this *PostController) Post() {
 			err = c.Insert(&newResult)
 		}
 	
-	var resultAll [] ClassItem
+	var resultAll [] services.ClassItem
 	err = c.Find(nil).All(&resultAll)
 	fmt.Println("Results All: ", resultAll)
 	
