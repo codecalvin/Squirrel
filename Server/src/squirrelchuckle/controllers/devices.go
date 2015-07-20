@@ -25,7 +25,6 @@ func initController() bool {
 		}
 	}
 
-	println("apnService")
 	if userService == nil {
 		userService, _ = core.SquirrelApp.GetServiceByName("UserService").(*services.UserService)
 		if userService == nil || !userService.Alive() {
@@ -34,7 +33,6 @@ func initController() bool {
 		}
 	}
 
-	println("userService")
 	if deviceTokenService == nil {
 		deviceTokenService, _ = core.SquirrelApp.GetServiceByName("DeviceTokenService").(*services.DeviceTokenService)
 		if deviceTokenService == nil || !deviceTokenService.Alive() {
@@ -43,7 +41,6 @@ func initController() bool {
 		}
 	}
 
-	println("deviceTokenService")
 	return true
 }
 
