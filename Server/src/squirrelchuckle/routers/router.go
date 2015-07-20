@@ -27,6 +27,8 @@ func init() {
 
 	router("/users", "users", &controllers.UsersController{})
 	router("/users/:id", "user_url", &controllers.UsersController{})
+	router("/login", "login", &controllers.SignInController{})
+	router("/signup", "signup", &controllers.SignUpController{})
 
 	router("/device", "device_token", &controllers.DeviceTokenController{})
 	router("/classes", "classes", &controllers.ClassController{})

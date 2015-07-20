@@ -3,6 +3,8 @@ package controllers
 import (
 	"github.com/astaxie/beego"
 	"squirrelchuckle/services"
+	"fmt"
+	"squirrelchuckle/core"
 )
 
 type UsersController struct {
@@ -28,6 +30,7 @@ type RegisterItem struct {
 
 func (this *UsersController) Get() {
 	userKey := this.Ctx.Input.Param(":userKey")
+	fmt.Println(userKey, "========")
 	if user, ok := userService.Users[userKey]; ok {
 		this.Data["json"] = user.Classes
 	}
@@ -41,6 +44,14 @@ type UserController struct {
 }
 
 func (this *SignUpController) Post() {
+	if userService == nil {
+		userService, _ = core.SquirrelApp.GetServiceByName("UserService").(*services.UserService)
+	}
+	if userService == nil {
+		this.Data["json"] = fmt.Sprintf("service is down a %v, u %v, d %v", apnService==nil, userService == nil, deviceTokenService==nil)
+		this.ServeJson()
+		return
+	}
 	input 		:= this.Input()
 	adsName := input.Get("ads_name")
 	adsPass := input.Get("ads_pass")
@@ -58,8 +69,10 @@ func (this *SignUpController) Post() {
 
 	if newUser, err := userService.AddWithDevice(user, deviceToken); newUser == nil && err != nil {
 		this.CustomAbort(400, err.Error())
+		fmt.Println(newUser, err)
 	} else {
 		this.Data["password"] = newUser.Password
+	fmt.Println("OK", newUser, err)
 	}
 	this.ServeJson()
 }
