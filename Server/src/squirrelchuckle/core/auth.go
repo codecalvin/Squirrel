@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"crypto/tls"
 	"net"
+
 )
 
 type loginAuth struct {
@@ -63,13 +64,15 @@ func (this *AuthService) Name() string {
 }
 
 func (this *AuthService) setUpConn() *smtp.Client {
-	conn, _ := net.Dial("tcp", SquirrelApp.ExchangeUrl)
-
-	if client, err := smtp.NewClient(conn, SquirrelApp.ExchangeHost); err != nil {
-		conn.Close()
-		return nil
+	if conn, err := net.Dial("tcp", SquirrelApp.ExchangeUrl); err == nil {
+		if client, err := smtp.NewClient(conn, SquirrelApp.ExchangeHost); err != nil {
+			conn.Close()
+			return nil
+		} else {
+			return client
+		}
 	} else {
-		return client
+		return nil
 	}
 }
 
@@ -80,13 +83,13 @@ func (this *AuthService) initExchangePool() error {
 	this.authChan = make(chan *smtp.Client, this.minPool)
 
 	conf.Certificates = make([]tls.Certificate, 1)
-	conf.Certificates[0],  err = tls.LoadX509KeyPair("cert.pem", "key.pem")
+	conf.Certificates[0],  err = tls.LoadX509KeyPair("conf/cert.pem", "conf/key.pem")
 	if err != nil {
 		SquirrelApp.Fatal("[AuthService] certificate error %v", err.Error())
 	}
 	conf.InsecureSkipVerify = true
 	this.Config = conf
-
+	
 	for i := 0; i < this.minPool; i++ {
 		if nc := this.setUpConn(); nc != nil {
 			this.authChan <- nc

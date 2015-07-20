@@ -199,6 +199,7 @@ func (this *DeviceTokenService) Stale() {
 }
 
 func (this *DeviceTokenService) TestAPN() {
-	if _, ok := core.SquirrelApp.GetServiceByName("ApplePushService").(*ApplePushService); ok {
+	if applePushService != nil {
+		applePushService.TestAPN()
 	}
 }

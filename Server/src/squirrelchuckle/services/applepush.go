@@ -1,7 +1,7 @@
 package services
 
 // This file based on library:
-// https://raw.githubusercontent.com/joekarl/go-libapns
+// https://github.com/joekarl/go-libapns
 // License is below:
 
 // The MIT License (MIT)
@@ -23,6 +23,7 @@ import (
 	"encoding/binary"
 	"time"
 	"encoding/hex"
+	"io"
 )
 
 type Badge struct {
@@ -30,9 +31,9 @@ type Badge struct {
 }
 
 func NewBadge(number int) *Badge {
-	b := &Badge{}
-	if err := b.Set(number); err == nil {
-		return b
+	p := &Badge{}
+	if p.Set(number) == nil {
+		return p
 	} else {
 		return nil
 	}
@@ -61,6 +62,7 @@ func (this *Badge) Set(number int) error {
 }
 
 func (this *Badge) MarshalJSON() ([]byte, error) {
+	fmt.Println("Badge number", this.number)
 	return []byte(strconv.Itoa(this.number)), nil
 }
 
@@ -68,7 +70,7 @@ func (this *Badge) UnmarshalJSON(data []byte) error {
 	if val, err := strconv.ParseInt(string(data), 10, 32); err != nil {
 		return err
 	} else {
-		return this.Set(val)
+		return this.Set(int(val))
 	}
 }
 
@@ -76,7 +78,7 @@ func (this *Badge) UnmarshalJSON(data []byte) error {
 type Payload struct {
 	// Basic alert structure
 	AlertText        string
-	Badge
+	*Badge
 	Sound            string
 	ContentAvailable int
 	Category         string
@@ -121,7 +123,7 @@ type AlertBody struct {
 
 type alertAps struct {
 	Alert            AlertBody
-	Badge
+	*Badge
 	Sound            string
 	Category         string
 	ContentAvailable int
@@ -129,7 +131,7 @@ type alertAps struct {
 
 type simpleAps struct {
 	Alert            string
-	Badge
+	*Badge
 	Sound            string
 	Category         string
 	ContentAvailable int
@@ -154,10 +156,10 @@ func (p *Payload) isSimple() bool {
 
 //Helper method to generate a json compatible map with aps key + custom fields
 //will return error if custom field named aps supplied
-func constructFullPayload(aps interface{}, customFields map[string]interface{}) (map[string]interface{}, error) {
+func constructFullPayload(aps interface{}, fields map[string]interface{}) (map[string]interface{}, error) {
 	var fullPayload = make(map[string]interface{})
 	fullPayload["aps"] = aps
-	for key, value := range customFields {
+	for key, value := range fields {
 		if key == "aps" {
 			return nil, errors.New("Cannot have a custom field named aps")
 		}
@@ -264,7 +266,7 @@ func (s simpleAps) MarshalJSON() ([]byte, error) {
 	if s.Alert != "" {
 		toMarshal["alert"] = s.Alert
 	}
-	if s.Badge.Valid() {
+	if s.Badge != nil && s.Badge.Valid() {
 		toMarshal["badge"] = s.Badge
 	}
 	if s.Sound != "" {
@@ -284,7 +286,7 @@ func (a alertAps) MarshalJSON() ([]byte, error) {
 	toMarshal := make(map[string]interface{})
 	toMarshal["alert"] = a.Alert
 
-	if a.Badge.Valid() {
+	if a.Badge != nil && a.Badge.Valid() {
 		toMarshal["badge"] = a.Badge
 	}
 	if a.Sound != "" {
@@ -441,7 +443,7 @@ func applyConfigDefaults(config *APNSConfig) error {
 }
 
 //Starts connection close and send listeners
-func socketAPNSConnection(socket net.Conn, config *APNSConfig) *APNSConnection {
+func socketAPNSConnection(socket net.Conn, config *APNSConfig) (*APNSConnection, error) {
 	if err := applyConfigDefaults(config); err != nil {
 		return nil, err
 	}
@@ -463,7 +465,7 @@ func socketAPNSConnection(socket net.Conn, config *APNSConfig) *APNSConnection {
 	go c.closeListener(errCloseChannel)
 	go c.sendListener(errCloseChannel)
 
-	return c
+	return c, nil
 }
 
 //Disconnect from the Apns Gateway
@@ -547,9 +549,7 @@ func (c *APNSConnection) sendListener(errCloseChannel chan *AppleError) {
 				c.payloadIdCounter = 1
 			}
 
-			err := c.bufferPayload(idPayloadObj)
-			if err != nil {
-				fmt.Print(err)
+			if err := c.bufferPayload(idPayloadObj); err != nil {
 				break
 			}
 
@@ -697,6 +697,7 @@ func (c *APNSConnection) flushBufferToSocket() {
 
 	bufBytes := c.inFlightFrameByteBuffer.Bytes()
 
+	fmt.Println("flush apple push notification message")
 	//write to socket
 	_, writeErr := c.socket.Write(bufBytes)
 	if writeErr != nil {
@@ -704,4 +705,78 @@ func (c *APNSConnection) flushBufferToSocket() {
 		defer c.noFlushDisconnect()
 	}
 	c.inFlightFrameByteBuffer.Reset()
+}
+
+//Feedback Response
+type FeedbackResponse struct {
+	//A timestamp indicating when APNs
+	//determined that the app no longer exists on the device.
+	//This value represents the seconds since 12:00 midnight on January 1, 1970 UTC.
+	Timestamp uint32
+	//Device push token
+	Token string
+}
+
+const (
+	//Size of feedback header frame
+	FEEDBACK_RESPONSE_HEADER_FRAME_SIZE = 6
+)
+
+//Read from the socket until there is no more to be read or an error occurs
+//Then close the socket
+//On error some responses may be returned so one should check that the list
+//returned doesn't have anything in it
+func readFromFeedbackService(socket net.Conn) (*list.List, error) {
+
+	headerBuffer := make([]byte, FEEDBACK_RESPONSE_HEADER_FRAME_SIZE)
+	responses := list.New()
+
+	for {
+		bytesRead, err := socket.Read(headerBuffer)
+		if err != nil {
+			if err == io.EOF {
+				//we're good, just reached the end of the socket
+				return responses, nil
+			} else {
+				//this is a legit error, return it
+				return responses, err
+			}
+		}
+
+		if bytesRead != FEEDBACK_RESPONSE_HEADER_FRAME_SIZE {
+			//? should always be this size...
+			return responses,
+			errors.New(fmt.Sprintf("Should have read %v header bytes but read %v bytes",
+				FEEDBACK_RESPONSE_HEADER_FRAME_SIZE, bytesRead))
+		}
+
+		tokenSize := int(binary.BigEndian.Uint16(headerBuffer[4:6]))
+
+		tokenBuffer := make([]byte, tokenSize)
+
+		bytesRead, err = socket.Read(tokenBuffer)
+		if err != nil {
+			if err == io.EOF {
+				//we're good, just reached the end of the socket
+				return responses, nil
+			} else {
+				//this is a legit error, return it
+				return responses, err
+			}
+		}
+
+		if bytesRead != tokenSize {
+			//? should always be this size...
+			return responses,
+			errors.New(fmt.Sprintf("Should have read %v token bytes but read %v bytes",
+				tokenSize, bytesRead))
+		}
+
+		response := new(FeedbackResponse)
+		response.Timestamp = binary.BigEndian.Uint32(headerBuffer[0:4])
+		response.Token = hex.EncodeToString(tokenBuffer)
+		responses.PushBack(response)
+	}
+
+	return responses, nil
 }

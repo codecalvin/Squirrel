@@ -3,15 +3,20 @@ package services
 import (
 	"crypto/tls"
 
+	"time"
+	"sync"
 	"fmt"
-	"encoding/json"
-	"encoding/binary"
-	"bytes"
 )
 
 var apnConn *APNSConnection
+var feedConn *tls.Conn
+
 type ApplePushService struct {
-	alive bool
+	alive 		bool
+
+	ticker 		*time.Ticker
+	stopChan 	chan bool
+	sync.Mutex
 }
 
 var applePushService *ApplePushService
@@ -20,7 +25,7 @@ func (this *ApplePushService) Alive() bool {
 }
 
 func (this *ApplePushService) Depends() []string {
-	return [] string { "ApplePushService" }
+	return nil
 }
 
 func (this *ApplePushService) Name() string {
@@ -28,88 +33,94 @@ func (this *ApplePushService) Name() string {
 }
 
 func (this *ApplePushService) Initialize() error {
+	this.Lock()
+	defer this.Unlock()
+
 	if this.alive {
 		return nil
 	}
-
 	var err error
 	if cert, err := tls.LoadX509KeyPair("conf/SquirrelCert.pem.private", "conf/SquirrelKey.u.pem.private"); err == nil {
 		var tlsConn *tls.Conn
-		tlsConn, err = tls.Dial("tcp", "gateway.sandbox.push.apple.com:2195", &tls.Config { Certificates: []tls.Certificate{cert} })
-		if err != nil {
+		tlsConf := &tls.Config { Certificates: []tls.Certificate{cert} }
+		if tlsConn, err = tls.Dial("tcp", "gateway.sandbox.push.apple.com:2195", tlsConf); err != nil {
+			goto stale
+		}
+		if apnConn, err = socketAPNSConnection(tlsConn, &APNSConfig{}); err != nil {
+			tlsConn.Close()
 			goto stale
 		}
 
-		if apnConn, err = socketAPNSConnection(tlsConn, &APNSConfig{}); err != nil {
+		if feedConn, err = tls.Dial("tcp", "feedback.sandbox.push.apple.com:2196", tlsConf); err != nil {
 			goto stale
 		}
-//success:
+
+		//success:
 		this.alive = true
 		applePushService = this
 		return nil
 	}
 
+	this.stopChan = make(chan bool)
+
+	// ticker
+	this.ticker = time.NewTicker(time.Second * 10)
+	go func () {
+		loop:
+		for {
+			select {
+			case <-this.ticker.C:
+				apnsTicker(this)
+			case <- this.stopChan:
+				break loop
+			}
+		}
+	} ()
+
 stale:
 	return err
 }
 
+func apnsTicker(this *ApplePushService) {
+	fmt.Println("apns ticker...")
+	if elements, err := readFromFeedbackService(feedConn); err != nil {
+		for element := elements.Front(); element != nil; element = element.Next() {
+			value, _ := element.Value.(*FeedbackResponse)
+			fmt.Println(value.Token)
+		}
+	}
+}
+
 func (this *ApplePushService) UnInitialize() {
+	this.Lock()
+	defer this.Unlock()
+
 	if !this.alive {
 		return
 	}
 
+	this.stopChan <- true
+	this.ticker.Stop()
 	apnConn.Disconnect()
 	apnConn = nil
+	feedConn.Close()
+	feedConn = nil
 	this.alive = false
 	applePushService = nil
 }
 
-func (this *ApplePushService) TestAPN(tokens []DeviceToken) error {
-	payload := simpleAps {
-		Badge:1,
-		Alert:"hello my apple",
-		Sound:"default",
-	}
-
-	payloadBytes, err := payload.MarshalJSON()
-	if err != nil {
-		return fmt.Errorf("Error marshalling payload %v\n", err)
-	}
-
-	if err == nil {
-		return nil
-	}
-
+var deviceToken string = "ed8bf85a32fd6a3e6339531ae6fe90824d67df100a11f5dfe7f22ae0f92a50b8"
+//						 "ed8bf85a32fd6a3e6339531ae6fe90824d67df100a11f5dfe7f22ae0f92a50b8"
+func (this *ApplePushService) TestAPN() error {
 	//write token
-	apnConn.SendChannel
-	frameByteBuffer := new(bytes.Buffer)
-	for _, token := range tokens {
-		itemByteBuffer := new(bytes.Buffer)
-		binary.Write(itemByteBuffer, binary.BigEndian, uint8(1))
-		binary.Write(itemByteBuffer, binary.BigEndian, uint16(DEVICE_TOKEN_LEN))
-		binary.Write(itemByteBuffer, binary.BigEndian, token)
-
-		//write payload
-		binary.Write(itemByteBuffer, binary.BigEndian, uint8(2))
-		binary.Write(itemByteBuffer, binary.BigEndian, uint16(len(payloadBytes)))
-		binary.Write(itemByteBuffer, binary.BigEndian, payloadBytes)
-	
-		//write id
-		binary.Write(itemByteBuffer, binary.BigEndian, uint8(3))
-		binary.Write(itemByteBuffer, binary.BigEndian, uint16(4))
-		binary.Write(itemByteBuffer, binary.BigEndian, TEST_ID_NUM)
-	
-		//write header info and item info
-		binary.Write(frameByteBuffer, binary.BigEndian, uint8(2))
-		binary.Write(frameByteBuffer, binary.BigEndian, uint32(itemByteBuffer.Len()))
-		itemByteBuffer.WriteTo(frameByteBuffer)
+	payload := &Payload {
+		AlertText: "A new class coming",
+		Badge: NewBadge(0),
+		ContentAvailable: 1,
+		Sound: "default",
+		Token: deviceToken,
 	}
-	
-	//write to socket
-	_, writeErr := APNConn.Write(frameByteBuffer.Bytes())
-	if writeErr != nil {
-		fmt.Printf("Error while writing to socket \n", writeErr)
-	}
-	
-	return writeErr
+	fmt.Println(payload.Badge)
+	apnConn.SendChannel <- payload
+	return nil
 }

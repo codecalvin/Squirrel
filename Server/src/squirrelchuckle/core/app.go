@@ -1,5 +1,7 @@
 package core
-import "github.com/astaxie/beego/logs"
+import (
+	"github.com/astaxie/beego/logs"
+)
 
 type Squirrel struct {
 	*AppSetting
@@ -53,7 +55,6 @@ func (this *Squirrel) Initialize() error {
 
 	this.ServiceManager = &ServiceManager{}
 	this.ServiceManager.Initialize()
-
 	this.ServiceManager.RegisterService(this.Database)
 	this.ServiceManager.RegisterService(this.AppSetting)
 	this.ServiceManager.RegisterService(this.auth)

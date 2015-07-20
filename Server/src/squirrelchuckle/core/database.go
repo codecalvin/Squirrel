@@ -41,7 +41,7 @@ func (this *Database) Initialize() error {
 		this.counterCol = this.DB("squirrel").C("counter")
 		this.alive = true
 	} else {
-		SquirrelApp.Critical("Database Initialize failed. Error: %v", err)
+		SquirrelApp.Fatal("Database Initialize failed. Error: %v", err)
 	}
 
 	return err

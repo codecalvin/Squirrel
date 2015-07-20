@@ -6,6 +6,7 @@ import (
 	"squirrelchuckle/services"
 	"encoding/hex"
 //	"encoding/binary"
+	"fmt"
 )
 
 
@@ -36,7 +37,8 @@ func initController() bool {
 
 func (this *DeviceTokenController) Get() {
 	if !initController() {
-		this.Data["json"] = "service is down"
+		this.Data["json"] = fmt.Sprintf("service is down a %v, u %v, d %v", apnService==nil, userService == nil, deviceTokenService==nil)
+		//"service is down"
 	} else {
 		deviceTokenService.TestAPN()
 		this.Data["json"] = "Test APN"

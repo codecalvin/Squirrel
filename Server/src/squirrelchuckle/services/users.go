@@ -159,7 +159,7 @@ func (this *UserService) Add(user *User) error {
 	this.Lock()
 	defer this.Unlock()
 
-	if !core.SquirrelApp.Auth(user.AdsName, user.AdsPass) {
+	if !core.SquirrelApp.Auth(&user.AdsName, &user.AdsPass) {
 		return errors.New("invalid password")
 	}
 	user.Password = uuid.NewV4().String()
@@ -199,7 +199,7 @@ func (this *UserService) AddWithDevice(user *User, deviceToken string) (*User, e
 		return nil, errors.New("invalid user")
 	}
 
-	if !core.SquirrelApp.Auth(user.AdsName, user.AdsPass) {
+	if !core.SquirrelApp.Auth(&user.AdsName, &user.AdsPass) {
 		return nil, errors.New("invalid password")
 	}
 	user.Password = uuid.NewV4().String()
@@ -207,7 +207,7 @@ func (this *UserService) AddWithDevice(user *User, deviceToken string) (*User, e
 	this.Lock()
 	defer this.Unlock()
 
-	if content, err := hex.DecodeString(deviceToken); err != nil || len(content) != DEVICE_TOKEN_LEN {
+	if content, err := hex.DecodeString(deviceToken); err != nil || len(content) != APNS_TOKEN_SIZE {
 		return nil, errors.New("Error device token")
 	}
 
@@ -238,7 +238,7 @@ func (this *UserService) RemoveDevice(d *DeviceToken) {
 	}
 }
 
-func (this *UserService) Auth(adsName string, adsPass *string) bool{
+func (this *UserService) Auth(adsName, adsPass *string) bool{
 	return core.SquirrelApp.Auth(adsName, adsPass)
 }
 

@@ -1,5 +1,8 @@
 package core
-import "sync"
+import (
+	"sync"
+	"fmt"
+)
 
 type ServiceManager struct {
 	services 		map[string] ServiceInterface
@@ -23,9 +26,8 @@ func findMature(manager *ServiceManager) ServiceInterface {
 
 	// find from the last one
 	for i := len(manager.pendingChain) - 1; i >= 0; i-- {
-		service := manager.pendingChain[i]
-		si = service
-		for _, name := range service.Depends() {
+		si = manager.pendingChain[i]
+		for _, name := range si.Depends() {
 			if _, ok := manager.services[name]; !ok {
 				si = nil
 				break
@@ -44,23 +46,26 @@ func matureRouting(this *ServiceManager) {
 loop:
 	for {
 		select {
-		case _ = <-this.matureChan:
+		case <- this.matureChan:
 			// check service ready to initialize
 			var si ServiceInterface
 			if si = findMature(this); si == nil {
-				return
+				continue
 			}
 
 			name := si.Name()
 			if err := si.Initialize(); err == nil {
+				fmt.Println("Initialize service ", name)
 				SquirrelApp.Info("Initialize service %v", name)
 				this.Lock()
 				this.services[name] = si
 				this.Unlock()
-
-				this.matureChan <- true
+				go func() {
+					this.matureChan <- true
+				}()
 			} else {
 				SquirrelApp.Error("[ServiceManager]: Failed to initialize service %v. Error: %v", name, err)
+				continue
 			}
 		case <- this.termChan:
 			break loop
@@ -143,7 +148,8 @@ func (this *ServiceManager) RegisterService (service ServiceInterface) bool {
 		return 2
 	}
 	
-	switch updateServices() {
+	code := updateServices()
+	switch code {
 	case 2:
 		this.Lock()
 		this.pendingChain = append(this.pendingChain, service)

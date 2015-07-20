@@ -16,7 +16,7 @@ func router(rootPath, info string, c beego.ControllerInterface, mappingMethods .
 func init() {
 	controllers.EndPoints = make(map[string]string)
 	registerServices()
-
+	
 	router("/", "home_page", &controllers.MainController{})
 	router("/api", "api_page", &controllers.ApiController{})
 	router("/api/admin", "admin_page", &controllers.AdminController{})
@@ -36,5 +36,4 @@ func registerServices() {
 	core.SquirrelApp.RegisterService(&services.ApplePushService{})
 	core.SquirrelApp.RegisterService(&services.DeviceTokenService{})
 	core.SquirrelApp.RegisterService(&services.UserService{})
-	
 }
