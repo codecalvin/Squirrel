@@ -63,15 +63,14 @@
     
     [self registerUserInformation];
     
-    [self loginViewSwitch];
-    //[self loginCheck];
+    [self loginCheck];
 }
 
 - (void) loginCheck {
     NSMutableDictionary *parameters = [[ NSMutableDictionary alloc] init];
     [parameters setValue:userNameTextField_.text forKey:@"ads_name"];
     [parameters setValue:passwordTextField_.text forKey:@"ads_pass"];
-    
+    errorInformation_.text = @"";
     NSString* signupURL = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_SIGNUP_URL];
     [self request:RequestTypePost urlString:signupURL parameters:parameters];
 }
@@ -121,10 +120,12 @@
 }
 
 - (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject {
+    [super onSuccess:operation responseObject:responseObject];
     [self loginViewSwitch];
 }
 
 - (void)onFail:(AFHTTPRequestOperation *)operation error:(NSError*)error {
+    [super onFail:operation error:error];
     errorInformation_.text = @"User name or password error!";
 }
 @end

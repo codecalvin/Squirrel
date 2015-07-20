@@ -33,9 +33,6 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [notificationTableView_ reloadData];
-    
-    NSString* classListURLString = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_PART_CLASS_LIST];
-    [self request:RequestTypeGet urlString:classListURLString parameters:nil];
 }
 
 - (void)onSuccess:(AFHTTPRequestOperation *)operation responseObject:(id)responseObject

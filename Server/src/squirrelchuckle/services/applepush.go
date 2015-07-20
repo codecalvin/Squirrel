@@ -62,7 +62,6 @@ func (this *Badge) Set(number int) error {
 }
 
 func (this *Badge) MarshalJSON() ([]byte, error) {
-	fmt.Println("Badge number", this.number)
 	return []byte(strconv.Itoa(this.number)), nil
 }
 

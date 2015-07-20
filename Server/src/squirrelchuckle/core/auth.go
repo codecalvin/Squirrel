@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"crypto/tls"
 	"net"
-
 )
 
 type loginAuth struct {
@@ -152,8 +151,10 @@ func (this *AuthService) Auth(name, password *string) bool {
 				status = client.Auth(LoginAuth(name, password)) == nil
 				client.Close()
 			}
+			// return authChan
+			this.authChan <- client
 			return status
-		// TODO timeout mechanics
+			// TODO timeout mechanics
 		}
 	}
 	return status

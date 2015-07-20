@@ -7,7 +7,7 @@
 
     "exchange_enable" : "true",
     "exchange_server" : "connect.autodesk.com",
-    "exchange_port" : "25",
+    "exchange_port" : "587",
 
     "exchange_auth_min_pool" : "1",
     "exchange_auth_max_pool" : "20"

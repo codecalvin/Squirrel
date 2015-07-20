@@ -57,7 +57,9 @@ func (this *SignUpController) Post() {
 	adsPass := input.Get("ads_pass")
 	deviceToken := input.Get("device_token")
 
+	fmt.Println("111111")
 	if _, ok := userService.Users[adsName]; ok {
+		fmt.Println("User already registed")
 		this.CustomAbort(400, "User already registed")
 		return
 	}
@@ -67,13 +69,15 @@ func (this *SignUpController) Post() {
 		AdsPass:    adsPass,
 	}
 
-	if newUser, err := userService.AddWithDevice(user, deviceToken); newUser == nil && err != nil {
-		this.CustomAbort(400, err.Error())
+	fmt.Println("222222")
+	if newUser, err := userService.AddWithDevice(user, deviceToken); newUser == nil {
 		fmt.Println(newUser, err)
+		this.CustomAbort(400, err.Error())
 	} else {
-		this.Data["password"] = newUser.Password
-	fmt.Println("OK", newUser, err)
+		this.Data["json"] = []string { newUser.Password }
+		fmt.Println("OK", newUser, err)
 	}
+	fmt.Println("333333")
 	this.ServeJson()
 }
 
@@ -102,7 +106,7 @@ func (this *SignInController) Post() {
 			return
 		}
 
-		this.Data["password"] = user.Password
+		this.Data["password"] = user
 
 		// transfer & touch device token
 		deviceTokenService.Add(user.AdsName, deviceToken)

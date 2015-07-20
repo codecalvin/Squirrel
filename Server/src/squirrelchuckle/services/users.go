@@ -219,17 +219,16 @@ func (this *UserService) AddWithDevice(user *User, deviceToken string) (*User, e
 	if !core.SquirrelApp.Auth(&user.AdsName, &user.AdsPass) {
 		return nil, errors.New("invalid password")
 	}
-	user.Password = uuid.NewV4().String()
-
 	this.Lock()
 	defer this.Unlock()
 
 	if content, err := hex.DecodeString(deviceToken); err != nil || len(content) != APNS_TOKEN_SIZE {
-		return nil, errors.New("Error device token")
+		deviceToken = ""
 	}
 
+	user.Password = uuid.NewV4().String()
 	this.Users[user.AdsName] = makeUser(user)
-	if deviceTokenService != nil {
+	if deviceTokenService != nil && deviceToken != "" {
 		if err := deviceTokenService.Add(user.AdsName, deviceToken); err != nil {
 			user.Devices = nil
 			return user, err

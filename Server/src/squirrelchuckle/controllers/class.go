@@ -13,8 +13,6 @@ type ClassController struct {
 }
 
 func (this *ClassController) Get() {
-	fmt.Print("\nClassController::Get()\n") 
-        
 	var result [] services.ClassItem
 	c := core.SquirrelApp.DB("squirrel").C("class")
 	err := c.Find(nil).All(&result)
