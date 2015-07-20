@@ -134,7 +134,6 @@ func (this *ServiceManager) RegisterService (service ServiceInterface) bool {
 		return false
 	}
 	name := service.Name()
-
 	updateServices := func () int {
 		this.Lock()
 		defer this.Unlock()

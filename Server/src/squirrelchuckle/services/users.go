@@ -34,6 +34,22 @@ type UserInfo struct {
 	Avatar
 }
 
+type ClassBriefItem struct {
+	ElementType_UniqueKey string
+	ElementType_ClassName string
+	ElementType_ClassTime string
+}
+
+type ClassItem struct {
+	ElementType_UniqueKey        string
+	ElementType_ClassName        string
+	ElementType_ClassTime        string
+	ElementType_ClassTeacher     string
+	ElementType_ClassStudent     string
+	ElementType_ClassDescription string
+	RegisterUsers                map[string]string
+}
+
 type User struct {
 	AdsName     string          `json:"login_name" bson:"_id"`
 	Email 		string			`json:"email" bson:"email"`
@@ -42,6 +58,7 @@ type User struct {
 	Password  	string 			`json:"-" bson:"password"`
 	UserInfo
 	Devices 	[]*DeviceToken
+	Classes		map[string]*ClassBriefItem
 
 	core.PrivilegeLevel			`json:"privilege" bson:"privilege"`
 	dirty		bool

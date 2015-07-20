@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AFHttpViewController/AFHttpViewController.h"
 
-@interface MeViewController : UIViewController<UITableViewDelegate, UITableViewDataSource>
+@interface MeViewController : AFHttpViewController<UITableViewDelegate, UITableViewDataSource>
 
 @end

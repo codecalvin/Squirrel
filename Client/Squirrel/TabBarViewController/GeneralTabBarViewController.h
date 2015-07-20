@@ -11,9 +11,21 @@
 
 //--------------------------------------------------------------------------------------------------
 
+#define TAB_BAR_UNSELECTED_IMAGE_1 @"TabBar1"
+#define TAB_BAR_SELECTED_IMAGE_1 @"TabBar1Selected"
 
+#define TAB_BAR_UNSELECTED_IMAGE_2 @"TabBar2"
+#define TAB_BAR_SELECTED_IMAGE_2 @"TabBar1Selected"
 
-#define TAB_BAR_MORE_INDEX 3
+#define TAB_BAR_UNSELECTED_IMAGE_3 @"TabBar3"
+#define TAB_BAR_SELECTED_IMAGE_3 @"TabBar3Selected"
+
+#define TAB_BAR_UNSELECTED_IMAGE_4 @"TabBar4"
+#define TAB_BAR_SELECTED_IMAGE_4 @"TabBar4Selected"
+
+#define TAB_BAR_BACKGROUND @"TabBarBackground"
+
+#define TAB_BAR_MORE_INDEX 2
 
 
 //--------------------------------------------------------------------------------------------------

@@ -1,10 +1,7 @@
 package controllers
 
-
 import (
-
 	"github.com/astaxie/beego"
-	
 	"squirrelchuckle/services"
 )
 
@@ -22,22 +19,20 @@ type SignInController struct {
 
 var userService *services.UserService
 
+type RegisterItem struct {
+	ElementType_UniqueKey     string
+	ElementType_ClassName     string
+	ElementType_UserUniqueKey string
+	ElementType_UserName      string
+}
+
 func (this *UsersController) Get() {
+	userKey := this.Ctx.Input.Param(":userKey")
+	if user, ok := userService.Users[userKey]; ok {
+		this.Data["json"] = user.Classes
+	}
+	this.ServeJson()
 }
-
-func (this *UsersController) Post() {
-//	input := this.Input()
-//	name := input.Get("name")
-//	id := input.Get("id")
-//
-//	p := ProfileInfo{UserName:name, UserId:id}
-//	if cInfo, err := userService.Upsert(bson.M{"userid": id}, p); err != nil {
-//		this.Ctx.Output.Body([]byte(err.Error()))
-//	} else {
-//		this.Ctx.Output.Body([]byte(fmt.Sprintf("updated %v, raw name %v, raw id %v", cInfo, name, id)))
-//	}
-}
-
 
 // -----------------------------------------------
 // User Management
