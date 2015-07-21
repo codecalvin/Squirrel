@@ -25,6 +25,7 @@ func init() {
 	router("/ws", "websocket_example:Join", &controllers.WebSocketController{})
 	router("/ws/join", "websocket_example:Join", &controllers.WebSocketController{}, "get:Join")
 
+	router("/listuser", "list user", &controllers.ListUserController{})
 	router("/users", "users", &controllers.UsersController{})
 	router("/users/:id", "user_url", &controllers.UsersController{})
 	router("/login", "login", &controllers.SignInController{})

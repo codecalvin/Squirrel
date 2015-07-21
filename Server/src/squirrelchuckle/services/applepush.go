@@ -65,7 +65,7 @@ func (this *Badge) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Itoa(this.number)), nil
 }
 
-func (this *Badge) UnmarshalJSON(data []byte) error {
+func (this *Badge) UnMarshalJSON(data []byte) error {
 	if val, err := strconv.ParseInt(string(data), 10, 32); err != nil {
 		return err
 	} else {

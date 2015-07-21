@@ -68,7 +68,7 @@ func (this *AppSetting) Initialize() error {
 			this.runConfigPath = filepath.Join(workPath, "conf", "run.json")
 		}
 	}
-
+	
 	ok := true
 	settings, err := ioutil.ReadFile(appConfigPath)
 	if err != nil {
@@ -105,7 +105,7 @@ func (this *AppSetting) Initialize() error {
 			this.ExchangeUrl = fmt.Sprintf("%v:%v", this.ExchangeHost, this.ExchangePort)
 		}
 	}
-
+	
 	if this.runConfig = make(map[string]string); utility.FileExists(this.runConfigPath) {
 		if settings, err = ioutil.ReadFile(this.runConfigPath); err == nil {
 			err = json.Unmarshal(settings, &this.runConfig)

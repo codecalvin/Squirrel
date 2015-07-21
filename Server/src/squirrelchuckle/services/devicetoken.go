@@ -204,6 +204,6 @@ func (this *DeviceTokenService) Stale() {
 
 func (this *DeviceTokenService) TestAPN() {
 	if applePushService != nil {
-		applePushService.TestAPN()
+		//applePushService.TestAPN()
 	}
 }

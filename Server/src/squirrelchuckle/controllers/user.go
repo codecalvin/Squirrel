@@ -11,6 +11,10 @@ type UsersController struct {
 	beego.Controller
 }
 
+type ListUserController struct {
+	beego.Controller
+}
+
 type SignUpController struct {
 	beego.Controller
 }
@@ -26,6 +30,43 @@ type RegisterItem struct {
 	ElementType_ClassName     string
 	ElementType_UserUniqueKey string
 	ElementType_UserName      string
+}
+
+func (this *ListUserController) Get() {
+
+
+	if ! initUserController() {
+		this.ServeJson()
+		return
+	}
+
+	i := 0
+	users := make([]*services.User, len(userService.Users))
+	for _, v := range userService.Users {
+		users[i] = v
+		i += 1
+	}
+	this.Data["json"] = users
+	this.ServeJson()
+}
+
+func (this *ListUserController) Post() {
+	if ! initUserController() {
+		this.ServeJson()
+		return
+	}
+
+	input := this.Input()
+	if name := input.Get("name"); name != "" {
+		if user, ok := userService.Users[name]; ok {
+			message := input.Get("msg")
+			if message == "" {
+				message = "mock up"
+			}
+			userService.NotifyUser(user, message, input.Get("badge"))
+		}
+	}
+	this.ServeJson()
 }
 
 func (this *UsersController) Get() {
@@ -94,7 +135,10 @@ func (this *SignUpController) Post() {
 		if deviceToken != "" {
 			userService.AddDevice(user, deviceToken)
 		}
-		this.Data["json"] = user.Password
+		this.Data["json"] = []string {user.Password}
+
+		userService.NotifyUser(user, fmt.Sprintf("hello %v, login from a device", user.AdsName), "-1")
+
 	case PASS_ERROR:
 		this.Ctx.Output.SetStatus(Unauth)
 	}
@@ -112,25 +156,16 @@ func (this *SignInController) Post() {
 		this.Ctx.Output.SetStatus(Unauth)
 	} else {
 		if password == user.Password  {
-			if deviceToken {
+			if deviceToken != "" {
+				// add & update device token
+				userService.AddDevice(user, deviceToken)
 
-			}
-		} else if len(adsPass) > 0 {
-			if userService.Auth(&user.AdsName, &user.AdsPass) {
-				// authorized login
-			} else {
-				this.CustomAbort(400, "User name or password error")
-				return
+				// TODO test
+				userService.NotifyUser(user, fmt.Sprintf("hello %v, login from a device", user.AdsName), "-1")
 			}
 		} else {
-			this.CustomAbort(400, "User name or password error")
-			return
+			this.Ctx.Output.SetStatus(Unauth)
 		}
-
-		this.Data["password"] = user
-
-		// transfer & touch device token
-		deviceTokenService.Add(user.AdsName, deviceToken)
 		this.ServeJson()
 	}
 }

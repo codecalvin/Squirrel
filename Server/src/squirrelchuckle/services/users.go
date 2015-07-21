@@ -69,7 +69,7 @@ func (this *UserService) Alive() bool {
 }
 
 func (this *UserService) Depends() []string {
-	return []string { "AuthService", "Database" }
+	return []string { "AuthService", "Database", "ApplePushService" }
 }
 
 func (this *UserService) Name() string {
@@ -128,7 +128,7 @@ func (this *UserService) Add(adsName, adsPass string) (*User, error) {
 		return nil,  errors.New("invalid user")
 	}
 
-	if !core.SquirrelApp.Auth(adsName, adsPass) {
+	if !core.SquirrelApp.Auth(&adsName, &adsPass) {
 		return nil, errors.New("invalid password")
 	}
 
@@ -203,5 +203,11 @@ func (this *UserService) addDevice(d *DeviceToken) {
 			user.Devices = append(user.Devices, d)
 		}
 		user.dirty = true
+	}
+}
+
+func (this *UserService) NotifyUser(user *User, message, badge string) {
+	for _, device := range user.Devices {
+		applePushService.NotifySimple(device.DeviceTokenId, message, badge)
 	}
 }

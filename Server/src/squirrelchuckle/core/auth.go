@@ -43,7 +43,7 @@ type AuthService struct {
 	exchangeAuth bool
 	minPool int
 	maxPool int
-
+	
 	authChan chan *smtp.Client
 	*tls.Config
 	alive bool
@@ -106,10 +106,9 @@ func (this *AuthService) Initialize() error {
 	if this.alive {
 		return nil
 	}
-
+	
 	if this.exchangeAuth = SquirrelApp.ExchangeAuth; this.exchangeAuth {
 		appConfig := SquirrelApp.AppSetting.appConfig
-
 		this.minPool = defaultMinPool
 		if value, ok := appConfig["exchange_auth_min_pool"]; ok {
 			if value, err := strconv.ParseInt(value, 10, 0); err == nil {

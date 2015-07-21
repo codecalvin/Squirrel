@@ -12,8 +12,8 @@
 
 
 #define SERVER_IP_KEY @"SERVER_IP_KEY"
-#define SERVER_IP_DEFAULT @"https://10.148.240.204:10443"
-
+//#define SERVER_IP_DEFAULT @"https://10.148.240.204:10443"
+#define SERVER_IP_DEFAULT @"https://192.168.1.106:10443"
 
 #define SERVER_IP [[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY]
 

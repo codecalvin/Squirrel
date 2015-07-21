@@ -19,13 +19,8 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
     
-    //NSString* ipAddress = [[NSUserDefaults standardUserDefaults] objectForKey:SERVER_IP_KEY];
-    //if (ipAddress == nil || [ipAddress rangeOfString:@"http"].length <= 0)
-    //{
-        [[NSUserDefaults standardUserDefaults] setObject:SERVER_IP_DEFAULT forKey:SERVER_IP_KEY];
-    //}
-
     // Let the device know we want to receive push notifications
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 8000
@@ -68,7 +63,9 @@
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
-    //[deviceToken writeToURL:[NSURL URLWithString:@"192.168.0.1:10443"] atomically:true];
-    NSLog(@"My token is: %@", deviceToken);
+    NSString* token = [[[deviceToken description] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"<>"]]
+                       stringByReplacingOccurrencesOfString: @" " withString: @""];
+
+    [[NSUserDefaults standardUserDefaults] setObject:token forKey:@"DeviceToken"];
 }
 @end

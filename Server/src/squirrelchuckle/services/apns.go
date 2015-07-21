@@ -6,6 +6,7 @@ import (
 	"time"
 	"sync"
 	"fmt"
+	"strconv"
 )
 
 var apnConn *APNSConnection
@@ -82,7 +83,6 @@ stale:
 }
 
 func apnsTicker(this *ApplePushService) {
-	fmt.Println("apns ticker...")
 	if elements, err := readFromFeedbackService(feedConn); err != nil {
 		for element := elements.Front(); element != nil; element = element.Next() {
 			value, _ := element.Value.(*FeedbackResponse)
@@ -109,18 +109,18 @@ func (this *ApplePushService) UnInitialize() {
 	applePushService = nil
 }
 
-var deviceToken string = "ed8bf85a32fd6a3e6339531ae6fe90824d67df100a11f5dfe7f22ae0f92a50b8"
-//						 "ed8bf85a32fd6a3e6339531ae6fe90824d67df100a11f5dfe7f22ae0f92a50b8"
-func (this *ApplePushService) TestAPN() error {
-	//write token
-	payload := &Payload {
-		AlertText: "A new class coming",
-		Badge: NewBadge(0),
-		ContentAvailable: 1,
-		Sound: "default",
-		Token: deviceToken,
+func (this *ApplePushService) NotifySimple(deviceToken, message, badge string) {
+	var nBadge *Badge
+	if v, err := strconv.ParseInt(badge, 10, 32); err == nil {
+		nBadge = NewBadge(int(v))
 	}
-	fmt.Println(payload.Badge)
+	payload := &Payload {
+		AlertText	: 	message,
+		Badge		:	nBadge,
+		Sound		: 	"default",
+		Category	: 	"Information",
+		Token		: 	deviceToken,
+		ContentAvailable: 1,
+	}
 	apnConn.SendChannel <- payload
-	return nil
 }

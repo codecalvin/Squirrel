@@ -67,10 +67,16 @@
 }
 
 - (void) loginCheck {
+    errorInformation_.text = @"";
+    
     NSMutableDictionary *parameters = [[ NSMutableDictionary alloc] init];
     [parameters setValue:userNameTextField_.text forKey:@"ads_name"];
     [parameters setValue:passwordTextField_.text forKey:@"ads_pass"];
-    errorInformation_.text = @"";
+    NSString* deviceToken = (NSString*)[[NSUserDefaults standardUserDefaults] objectForKey:@"DeviceToken"];
+    if (deviceToken != nil) {
+        [parameters setValue:deviceToken forKey:@"device_token"];
+    }
+    
     NSString* signupURL = [NSString stringWithFormat:@"%@%@", SERVER_IP, URL_SIGNUP_URL];
     [self request:RequestTypePost urlString:signupURL parameters:parameters];
 }
